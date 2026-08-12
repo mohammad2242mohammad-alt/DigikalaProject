@@ -1,0 +1,37 @@
+# Flutter
+frontend/.dart_tool/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/.idea/
+
+# Flutter generated
+frontend/pubspec.lock
+
+# Android
+frontend/android/.gradle/
+frontend/android/local.properties
+
+# iOS
+frontend/ios/Pods/
+
+# Laravel
+backend/vendor/
+backend/.env
+
+# Laravel cache & logs
+backend/storage/logs/
+backend/bootstrap/cache/
+
+# Node
+backend/node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
