@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductIndexRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
@@ -11,15 +12,44 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index(ProductIndexRequest $request): AnonymousResourceCollection
     {
-        $products = Product::query()
+        $filters = $request->validated();
+        $query = Product::query()
             ->with('category')
-            ->where('is_active', true)
-            ->latest()
-            ->paginate(20);
+            ->where('is_active', true);
 
-        return ProductResource::collection($products);
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if (isset($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (isset($filters['min_price'])) {
+            $query->whereRaw('COALESCE(discount_price, price) >= ?', [$filters['min_price']]);
+        }
+
+        if (isset($filters['max_price'])) {
+            $query->whereRaw('COALESCE(discount_price, price) <= ?', [$filters['max_price']]);
+        }
+
+        match ($filters['sort'] ?? 'latest') {
+            'price_asc' => $query->orderByRaw('COALESCE(discount_price, price) asc'),
+            'price_desc' => $query->orderByRaw('COALESCE(discount_price, price) desc'),
+            'rating' => $query->orderByDesc('rating'),
+            'popular' => $query->orderByDesc('views'),
+            default => $query->latest(),
+        };
+
+        return ProductResource::collection(
+            $query->paginate($filters['per_page'] ?? 20)->withQueryString()
+        );
     }
 
     public function store(StoreProductRequest $request): ProductResource
