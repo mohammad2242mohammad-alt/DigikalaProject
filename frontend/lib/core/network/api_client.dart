@@ -8,16 +8,23 @@ class ApiClient {
   ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? 'http://127.0.0.1:8000/api';
 
   final String baseUrl;
+  String? token;
+
+  Map<String, String> get _headers => {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
 
   Future<dynamic> get(String path, {Map<String, String>? queryParameters}) async {
     final uri = Uri.parse('$baseUrl$path').replace(queryParameters: queryParameters);
-    return _send(() => http.get(uri));
+    return _send(() => http.get(uri, headers: _headers));
   }
 
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
     return _send(() => http.post(
           Uri.parse('$baseUrl$path'),
-          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+          headers: _headers,
           body: jsonEncode(body ?? {}),
         ));
   }
