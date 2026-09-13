@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../admin/admin_page.dart';
 import '../cart/cart_page.dart';
 import '../category/categories_page.dart';
 import '../checkout/checkout_page.dart';
@@ -30,38 +31,22 @@ class HomePage extends ConsumerWidget {
           elevation: 0,
           title: const Text(
             'دیجی‌کالا',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.red, fontSize: 24, fontWeight: FontWeight.bold),
           ),
           actions: [
             IconButton(
               tooltip: 'جستجو',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SearchPage()),
-                );
-              },
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchPage())),
               icon: const Icon(Icons.search),
             ),
             IconButton(
               tooltip: 'دسته‌بندی‌ها',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CategoriesPage()),
-                );
-              },
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesPage())),
               icon: const Icon(Icons.category_outlined),
             ),
             IconButton(
               tooltip: 'سفارش‌ها',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OrdersPage()),
-                );
-              },
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OrdersPage())),
               icon: const Icon(Icons.receipt_long),
             ),
             Badge(
@@ -69,42 +54,36 @@ class HomePage extends ConsumerWidget {
               label: Text('$cartCount'),
               child: IconButton(
                 tooltip: 'سبد خرید',
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const CartPage()),
-                  );
-                },
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CartPage())),
                 icon: const Icon(Icons.shopping_cart_outlined),
               ),
             ),
             IconButton(
               tooltip: 'تکمیل سفارش',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CheckoutPage()),
-                );
-              },
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CheckoutPage())),
               icon: const Icon(Icons.shopping_cart_checkout),
             ),
             PopupMenuButton<String>(
               tooltip: 'حساب کاربری',
               icon: const Icon(Icons.account_circle_outlined),
               onSelected: (value) async {
-                if (value == 'logout') {
+                if (value == 'admin') {
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminPage()));
+                } else if (value == 'logout') {
                   await ref.read(authProvider.notifier).logout();
                 }
               },
               itemBuilder: (_) => [
-                PopupMenuItem<String>(
-                  enabled: false,
-                  value: 'user',
-                  child: Text(user?.name ?? 'کاربر'),
-                ),
+                PopupMenuItem<String>(enabled: false, value: 'user', child: Text(user?.name ?? 'کاربر')),
+                if (user?.isAdmin == true) ...[
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<String>(
+                    value: 'admin',
+                    child: Row(children: [Icon(Icons.admin_panel_settings_outlined), SizedBox(width: 8), Text('پنل مدیریت')]),
+                  ),
+                ],
                 const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Text('خروج از حساب'),
-                ),
+                const PopupMenuItem<String>(value: 'logout', child: Text('خروج از حساب')),
               ],
             ),
           ],
@@ -114,19 +93,11 @@ class HomePage extends ConsumerWidget {
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(
-                'خطا در دریافت اطلاعات:\n$error',
-                textAlign: TextAlign.center,
-              ),
+              child: Text('خطا در دریافت اطلاعات:\n$error', textAlign: TextAlign.center),
             ),
           ),
           data: (products) {
-            if (products.isEmpty) {
-              return const Center(
-                child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)),
-              );
-            }
-
+            if (products.isEmpty) return const Center(child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)));
             return RefreshIndicator(
               onRefresh: () => ref.refresh(productsProvider.future),
               child: ListView.builder(
@@ -137,24 +108,15 @@ class HomePage extends ConsumerWidget {
                     margin: const EdgeInsets.all(12),
                     child: ListTile(
                       leading: product.image != null && product.image!.isNotEmpty
-                          ? Image.network(
-                              product.image!,
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
-                            )
+                          ? Image.network(product.image!, width: 64, height: 64, fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
                           : const Icon(Icons.image_outlined, size: 48),
                       title: Text(product.name),
                       subtitle: Text('${product.effectivePrice.toStringAsFixed(0)} تومان'),
                       trailing: Text('⭐ ${product.rating}'),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailPage(product: product),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+                      ),
                     ),
                   );
                 },
