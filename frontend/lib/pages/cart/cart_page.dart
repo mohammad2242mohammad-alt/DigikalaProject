@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/price_formatter.dart';
 import '../../models/cart_model.dart';
 import '../../providers/cart_provider.dart';
 import '../checkout/checkout_page.dart';
@@ -8,7 +9,7 @@ import '../checkout/checkout_page.dart';
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
 
-  String _money(double value) => '${value.toStringAsFixed(0)} تومان';
+  String _money(double value) => '${PriceFormatter.format(value)} تومان';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
