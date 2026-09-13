@@ -48,5 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::patch('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+        Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+        Route::patch('/admin/orders/{order}/status', [OrderController::class, 'adminUpdateStatus']);
     });
 });
