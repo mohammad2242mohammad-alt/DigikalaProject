@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/price_formatter.dart';
 import '../../models/product_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
@@ -119,14 +120,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               const SizedBox(height: 20),
               if (hasDiscount)
                 Text(
-                  '${product.price.toStringAsFixed(0)} تومان',
+                  '${PriceFormatter.format(product.price)} تومان',
                   style: const TextStyle(
                     decoration: TextDecoration.lineThrough,
                     color: Colors.grey,
                   ),
                 ),
               Text(
-                '${product.effectivePrice.toStringAsFixed(0)} تومان',
+                '${PriceFormatter.format(product.effectivePrice)} تومان',
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
