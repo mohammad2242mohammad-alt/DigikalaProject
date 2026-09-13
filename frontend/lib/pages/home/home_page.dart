@@ -7,6 +7,7 @@ import '../../providers/product_provider.dart';
 import '../cart/cart_page.dart';
 import '../checkout/checkout_page.dart';
 import '../orders/orders_page.dart';
+import '../product/product_detail_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -113,9 +114,25 @@ class HomePage extends ConsumerWidget {
                 return Card(
                   margin: const EdgeInsets.all(12),
                   child: ListTile(
+                    leading: product.image != null && product.image!.isNotEmpty
+                        ? Image.network(
+                            product.image!,
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                          )
+                        : const Icon(Icons.image_outlined, size: 48),
                     title: Text(product.name),
-                    subtitle: Text('${product.effectivePrice} تومان'),
+                    subtitle: Text('${product.effectivePrice.toStringAsFixed(0)} تومان'),
                     trailing: Text('⭐ ${product.rating}'),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ProductDetailPage(product: product),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
