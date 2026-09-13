@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../cart/cart_page.dart';
@@ -15,6 +16,7 @@ class HomePage extends ConsumerWidget {
     final productsAsync = ref.watch(productsProvider);
     final cartAsync = ref.watch(cartProvider);
     final cartCount = cartAsync.valueOrNull?.itemsCount ?? 0;
+    final user = ref.watch(authProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -60,6 +62,27 @@ class HomePage extends ConsumerWidget {
               );
             },
             icon: const Icon(Icons.shopping_cart_checkout),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'حساب کاربری',
+            icon: const Icon(Icons.account_circle_outlined),
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await ref.read(authProvider.notifier).logout();
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                value: 'user',
+                child: Text(user?.name ?? 'کاربر'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('خروج از حساب'),
+              ),
+            ],
           ),
         ],
       ),
