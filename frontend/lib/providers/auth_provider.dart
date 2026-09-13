@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../models/user_model.dart';
@@ -9,8 +10,27 @@ final authRepositoryProvider = Provider<AuthRepository>(
 );
 
 class AuthNotifier extends AsyncNotifier<UserModel?> {
+  static const _tokenKey = 'auth_token';
+
   @override
-  Future<UserModel?> build() async => null;
+  Future<UserModel?> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_tokenKey);
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+
+    final apiClient = ref.read(apiClientProvider);
+    apiClient.token = token;
+
+    try {
+      return await ref.read(authRepositoryProvider).me();
+    } catch (_) {
+      apiClient.token = null;
+      await prefs.remove(_tokenKey);
+      return null;
+    }
+  }
 
   Future<void> login({required String email, required String password}) async {
     state = const AsyncLoading();
@@ -19,6 +39,8 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
             email: email,
             password: password,
           );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_tokenKey, session.token);
       return session.user;
     });
   }
@@ -37,13 +59,24 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
             password: password,
             passwordConfirmation: passwordConfirmation,
           );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_tokenKey, session.token);
       return session.user;
     });
   }
 
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
-    state = const AsyncData(null);
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      try {
+        await ref.read(authRepositoryProvider).logout();
+      } finally {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_tokenKey);
+        ref.read(apiClientProvider).token = null;
+      }
+      return null;
+    });
   }
 }
 
