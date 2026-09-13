@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/price_formatter.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
@@ -112,7 +113,7 @@ class HomePage extends ConsumerWidget {
                               errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
                           : const Icon(Icons.image_outlined, size: 48),
                       title: Text(product.name),
-                      subtitle: Text('${product.effectivePrice.toStringAsFixed(0)} تومان'),
+                      subtitle: Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
                       trailing: Text('⭐ ${product.rating}'),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
