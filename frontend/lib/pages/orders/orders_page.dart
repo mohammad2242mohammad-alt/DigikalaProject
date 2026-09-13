@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/price_formatter.dart';
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 
 class OrdersPage extends ConsumerWidget {
   const OrdersPage({super.key});
 
-  String _money(double value) => '${value.toStringAsFixed(0)} تومان';
+  String _money(double value) => '${PriceFormatter.format(value)} تومان';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
