@@ -39,11 +39,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/pay', [PaymentController::class, 'pay']);
 
     Route::middleware('can:admin')->group(function () {
+        Route::get('/admin/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{product}', [ProductController::class, 'update']);
         Route::patch('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
+        Route::get('/admin/categories', [CategoryController::class, 'adminIndex']);
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::patch('/categories/{category}', [CategoryController::class, 'update']);
