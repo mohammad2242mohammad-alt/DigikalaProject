@@ -3,62 +3,55 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
-    // نمایش همه محصولات
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
-        return response()->json([
-            'products' => Product::all()
-        ]);
+        $products = Product::query()
+            ->with('category')
+            ->where('is_active', true)
+            ->latest()
+            ->paginate(20);
+
+        return ProductResource::collection($products);
     }
 
-
-    // ساخت محصول جدید
-    public function store(Request $request)
+    public function store(StoreProductRequest $request): ProductResource
     {
-        $product = Product::create($request->all());
-
-        return response()->json([
-            'message' => 'Product created successfully',
-            'product' => $product
-        ]);
+        return new ProductResource(Product::create($request->validated()));
     }
 
-
-    // نمایش یک محصول
-    public function show(string $id)
+    public function show(Product $product): ProductResource
     {
-        $product = Product::findOrFail($id);
+        abort_unless($product->is_active, 404);
 
-        return response()->json($product);
+        $product->increment('views');
+        $product->load('category');
+
+        return new ProductResource($product->fresh());
     }
 
-
-    // ویرایش محصول
-    public function update(Request $request, string $id)
+    public function update(StoreProductRequest $request, Product $product): ProductResource
     {
-        $product = Product::findOrFail($id);
+        $product->update($request->validated());
 
-        $product->update($request->all());
-
-        return response()->json([
-            'message' => 'Product updated successfully',
-            'product' => $product
-        ]);
+        return new ProductResource($product->fresh('category'));
     }
 
-
-    // حذف محصول
-    public function destroy(string $id)
+    public function destroy(Product $product): JsonResponse
     {
-        Product::destroy($id);
+        $product->delete();
 
         return response()->json([
-            'message' => 'Product deleted successfully'
+            'success' => true,
+            'message' => 'Product deleted successfully.',
+            'data' => null,
         ]);
     }
 }
