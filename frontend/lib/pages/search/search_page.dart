@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/price_formatter.dart';
 import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
 import '../product/product_detail_page.dart';
@@ -191,7 +192,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 ? Image.network(product.image!, width: 70, height: 70, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, size: 42))
                                 : const Icon(Icons.image_outlined, size: 42),
                             title: Text(product.name),
-                            subtitle: Text(product.stock > 0 ? '${product.effectivePrice.toStringAsFixed(0)} تومان' : 'ناموجود'),
+                            subtitle: Text(product.stock > 0 ? '${PriceFormatter.format(product.effectivePrice)} تومان' : 'ناموجود'),
                             trailing: Text('⭐ ${product.rating}'),
                             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProductDetailPage(product: product))),
                           ),
