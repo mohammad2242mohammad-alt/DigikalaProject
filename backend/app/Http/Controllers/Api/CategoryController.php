@@ -25,6 +25,22 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function adminIndex(): JsonResponse
+    {
+        $categories = Category::query()
+            ->with('parent:id,name')
+            ->orderBy('parent_id')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin categories retrieved successfully.',
+            'data' => $categories,
+        ]);
+    }
+
     public function show(Category $category): JsonResponse
     {
         return response()->json([
