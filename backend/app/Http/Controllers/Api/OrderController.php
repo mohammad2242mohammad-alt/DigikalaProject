@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CheckoutRequest;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
@@ -49,5 +50,30 @@ class OrderController extends Controller
             'message' => 'Order created successfully.',
             'data' => $order,
         ], 201);
+    }
+
+    public function adminIndex(): JsonResponse
+    {
+        $orders = Order::query()
+            ->with(['user:id,name,email', 'items', 'payments'])
+            ->latest()
+            ->paginate(30);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin orders retrieved successfully.',
+            'data' => $orders,
+        ]);
+    }
+
+    public function adminUpdateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
+    {
+        $order->update(['status' => $request->validated('status')]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated successfully.',
+            'data' => $order->fresh(['user:id,name,email', 'items', 'payments']),
+        ]);
     }
 }
