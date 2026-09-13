@@ -10,15 +10,13 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
             CategorySeeder::class,
             ProductSeeder::class,
             SettingSeeder::class,
+            AdminUserSeeder::class,
         ]);
 
         User::firstOrCreate(
@@ -26,6 +24,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Test User',
                 'password' => 'password',
+                'role' => 'customer',
             ],
         );
     }
