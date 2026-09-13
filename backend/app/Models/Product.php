@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
     protected $fillable = [
+        'category_id',
         'name',
         'description',
         'price',
@@ -17,4 +19,18 @@ class Product extends Model
         'rating',
         'views',
     ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
+        'is_active' => 'boolean',
+        'rating' => 'decimal:1',
+        'stock' => 'integer',
+        'views' => 'integer',
+    ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 }
