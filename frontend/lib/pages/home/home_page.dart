@@ -19,8 +19,8 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(productsProvider);
     final cartAsync = ref.watch(cartProvider);
-    final cartCount = cartAsync.valueOrNull?.itemsCount ?? 0;
-    final user = ref.watch(authProvider).valueOrNull;
+    final cartCount = cartAsync.asData?.value.itemsCount ?? 0;
+    final user = ref.watch(authProvider).asData?.value;
 
     return Directionality(
       textDirection: TextDirection.rtl,
