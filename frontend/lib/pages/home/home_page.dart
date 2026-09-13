@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/product_provider.dart';
+import '../checkout/checkout_page.dart';
+import '../orders/orders_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -23,6 +25,26 @@ class HomePage extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'سفارش‌ها',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const OrdersPage()),
+              );
+            },
+            icon: const Icon(Icons.receipt_long),
+          ),
+          IconButton(
+            tooltip: 'تکمیل سفارش',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CheckoutPage()),
+              );
+            },
+            icon: const Icon(Icons.shopping_cart_checkout),
+          ),
+        ],
       ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
