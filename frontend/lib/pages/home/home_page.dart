@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../cart/cart_page.dart';
 import '../checkout/checkout_page.dart';
 import '../orders/orders_page.dart';
 
@@ -11,6 +13,8 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(productsProvider);
+    final cartAsync = ref.watch(cartProvider);
+    final cartCount = cartAsync.valueOrNull?.itemsCount ?? 0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -34,6 +38,19 @@ class HomePage extends ConsumerWidget {
               );
             },
             icon: const Icon(Icons.receipt_long),
+          ),
+          Badge(
+            isLabelVisible: cartCount > 0,
+            label: Text('$cartCount'),
+            child: IconButton(
+              tooltip: 'سبد خرید',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CartPage()),
+                );
+              },
+              icon: const Icon(Icons.shopping_cart_outlined),
+            ),
           ),
           IconButton(
             tooltip: 'تکمیل سفارش',
