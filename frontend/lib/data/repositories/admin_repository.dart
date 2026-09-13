@@ -10,7 +10,7 @@ class AdminRepository {
 
   Future<List<Product>> getProducts() async {
     final decoded = await _apiClient.get('/admin/products');
-    return _productsFrom(decoded);
+    return _dataList(decoded).map(Product.fromJson).toList();
   }
 
   Future<Product> createProduct(Map<String, dynamic> data) async {
@@ -29,8 +29,7 @@ class AdminRepository {
 
   Future<List<CategoryModel>> getCategories() async {
     final decoded = await _apiClient.get('/admin/categories');
-    final data = _dataList(decoded);
-    return data.map(CategoryModel.fromJson).toList();
+    return _dataList(decoded).map(CategoryModel.fromJson).toList();
   }
 
   Future<CategoryModel> createCategory(Map<String, dynamic> data) async {
@@ -68,12 +67,14 @@ class AdminRepository {
   }
 
   List<Map<String, dynamic>> _dataList(dynamic decoded) {
-    if (decoded is Map<String, dynamic> && decoded['data'] is List) {
-      return (decoded['data'] as List).whereType<Map<String, dynamic>>().toList();
+    if (decoded is! Map<String, dynamic> || decoded['data'] == null) {
+      throw const FormatException('Invalid admin list response');
     }
-    throw const FormatException('Invalid admin list response');
-  }
 
-  List<Product> _productsFrom(dynamic decoded) =>
-      _dataList(decoded).map(Product.fromJson).toList();
+    final raw = decoded['data'];
+    final list = raw is Map<String, dynamic> ? raw['data'] : raw;
+    if (list is! List) throw const FormatException('Invalid admin list response');
+
+    return list.whereType<Map<String, dynamic>>().toList();
+  }
 }
