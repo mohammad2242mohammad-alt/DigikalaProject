@@ -21,13 +21,14 @@ class ApiClient {
     return _send(() => http.get(uri, headers: _headers));
   }
 
-  Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
-    return _send(() => http.post(
-          Uri.parse('$baseUrl$path'),
-          headers: _headers,
-          body: jsonEncode(body ?? {}),
-        ));
-  }
+  Future<dynamic> post(String path, {Map<String, dynamic>? body}) async =>
+      _send(() => http.post(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body ?? {})));
+
+  Future<dynamic> patch(String path, {Map<String, dynamic>? body}) async =>
+      _send(() => http.patch(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body ?? {})));
+
+  Future<dynamic> delete(String path) async =>
+      _send(() => http.delete(Uri.parse('$baseUrl$path'), headers: _headers));
 
   Future<dynamic> _send(Future<http.Response> Function() request) async {
     try {
