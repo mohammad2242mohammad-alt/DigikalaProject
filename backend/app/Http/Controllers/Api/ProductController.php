@@ -52,6 +52,13 @@ class ProductController extends Controller
         );
     }
 
+    public function adminIndex(): AnonymousResourceCollection
+    {
+        return ProductResource::collection(
+            Product::query()->with('category')->latest()->paginate(30)
+        );
+    }
+
     public function store(StoreProductRequest $request): ProductResource
     {
         return new ProductResource(Product::create($request->validated()));
