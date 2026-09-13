@@ -14,7 +14,7 @@ class CartRepository {
         'quantity': quantity,
       }));
 
-  Future<CartModel> clear() async => _parse(await _apiClient.post('/cart/clear'));
+  Future<CartModel> clear() async => _parse(await _apiClient.delete('/cart'));
 
   CartModel _parse(dynamic response) {
     if (response is! Map<String, dynamic> || response['data'] is! Map<String, dynamic>) {
