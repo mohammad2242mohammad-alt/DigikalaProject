@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/repositories/admin_repository.dart';
 import '../../models/category_model.dart';
 import '../../models/product_model.dart';
-import '../../core/network/api_client.dart';
-
-final adminRepositoryProvider = Provider<AdminRepository>(
-  (ref) => AdminRepository(ref.watch(apiClientProvider)),
-);
+import '../../providers/admin_provider.dart';
 
 class AdminProductsPage extends ConsumerStatefulWidget {
   const AdminProductsPage({super.key});
