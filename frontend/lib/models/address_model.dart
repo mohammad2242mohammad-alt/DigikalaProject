@@ -7,6 +7,8 @@ class AddressModel {
   final String city;
   final String address;
   final String postalCode;
+  final double? latitude;
+  final double? longitude;
   final bool isDefault;
 
   const AddressModel({
@@ -18,6 +20,8 @@ class AddressModel {
     required this.city,
     required this.address,
     required this.postalCode,
+    this.latitude,
+    this.longitude,
     required this.isDefault,
   });
 
@@ -30,6 +34,8 @@ class AddressModel {
         city: json['city']?.toString() ?? '',
         address: json['address']?.toString() ?? '',
         postalCode: json['postal_code']?.toString() ?? '',
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
         isDefault: json['is_default'] == true || json['is_default'] == 1,
       );
 }
