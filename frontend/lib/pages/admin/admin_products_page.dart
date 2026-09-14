@@ -5,44 +5,27 @@ import '../../models/category_model.dart';
 import '../../models/product_model.dart';
 import '../../providers/admin_provider.dart';
 
-class AdminProductsPage extends ConsumerStatefulWidget {
+class AdminProductsPage extends ConsumerWidget {
   const AdminProductsPage({super.key});
 
-  @override
-  ConsumerState<AdminProductsPage> createState() => _AdminProductsPageState();
-}
-
-class _AdminProductsPageState extends ConsumerState<AdminProductsPage> {
-  late Future<List<Product>> _productsFuture;
-  List<CategoryModel> _categories = const [];
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
+  Future<void> _refresh(WidgetRef ref) async {
+    await Future.wait([
+      ref.read(adminProductsProvider.notifier).refresh(),
+      ref.read(adminCategoriesProvider.notifier).refresh(),
+    ]);
   }
 
-  void _load() {
-    _productsFuture = ref.read(adminRepositoryProvider).getProducts();
-    ref.read(adminRepositoryProvider).getCategories().then((value) {
-      if (mounted) setState(() => _categories = value);
-    });
-  }
-
-  Future<void> _refresh() async {
-    setState(_load);
-    await _productsFuture;
-  }
-
-  Future<void> _edit([Product? product]) async {
+  Future<void> _edit(BuildContext context, WidgetRef ref, List<CategoryModel> categories, [Product? product]) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (_) => _ProductDialog(product: product, categories: _categories),
+      builder: (_) => _ProductDialog(product: product, categories: categories),
     );
-    if (result == true) await _refresh();
+    if (result == true && context.mounted) {
+      await ref.read(adminProductsProvider.notifier).refresh();
+    }
   }
 
-  Future<void> _delete(Product product) async {
+  Future<void> _delete(BuildContext context, WidgetRef ref, Product product) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -54,40 +37,36 @@ class _AdminProductsPageState extends ConsumerState<AdminProductsPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
-
+    if (confirmed != true || !context.mounted) return;
     try {
-      await ref.read(adminRepositoryProvider).deleteProduct(product.id);
-      await _refresh();
+      await ref.read(adminProductsProvider.notifier).delete(product.id);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productsAsync = ref.watch(adminProductsProvider);
+    final categoriesAsync = ref.watch(adminCategoriesProvider);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: const Text('مدیریت محصولات')),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _edit(),
-          icon: const Icon(Icons.add),
-          label: const Text('محصول جدید'),
-        ),
-        body: FutureBuilder<List<Product>>(
-          future: _productsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('خطا: ${snapshot.error}'));
-            }
-            final products = snapshot.data ?? const <Product>[];
+        floatingActionButton: categoriesAsync.hasValue
+            ? FloatingActionButton.extended(
+                onPressed: () => _edit(context, ref, categoriesAsync.value!),
+                icon: const Icon(Icons.add),
+                label: const Text('محصول جدید'),
+              )
+            : null,
+        body: productsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('خطا: $error')),
+          data: (products) {
             if (products.isEmpty) return const Center(child: Text('محصولی ثبت نشده است.'));
             return RefreshIndicator(
-              onRefresh: _refresh,
+              onRefresh: () => _refresh(ref),
               child: ListView.builder(
                 padding: const EdgeInsets.only(bottom: 90),
                 itemCount: products.length,
@@ -97,8 +76,13 @@ class _AdminProductsPageState extends ConsumerState<AdminProductsPage> {
                     margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
                     child: ListTile(
                       leading: product.image?.isNotEmpty == true
-                          ? Image.network(product.image!, width: 55, height: 55, fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
+                          ? Image.network(
+                              product.image!,
+                              width: 55,
+                              height: 55,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported),
+                            )
                           : const Icon(Icons.image_outlined, size: 42),
                       title: Text(product.name),
                       subtitle: Text(
@@ -108,8 +92,10 @@ class _AdminProductsPageState extends ConsumerState<AdminProductsPage> {
                       isThreeLine: true,
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) {
-                          if (value == 'edit') _edit(product);
-                          if (value == 'delete') _delete(product);
+                          if (value == 'edit' && categoriesAsync.hasValue) {
+                            _edit(context, ref, categoriesAsync.value!, product);
+                          }
+                          if (value == 'delete') _delete(context, ref, product);
                         },
                         itemBuilder: (_) => const [
                           PopupMenuItem(value: 'edit', child: Text('ویرایش')),
@@ -166,7 +152,9 @@ class _ProductDialogState extends ConsumerState<_ProductDialog> {
 
   @override
   void dispose() {
-    for (final c in [_name, _description, _price, _discount, _image, _stock]) c.dispose();
+    for (final c in [_name, _description, _price, _discount, _image, _stock]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -184,11 +172,11 @@ class _ProductDialogState extends ConsumerState<_ProductDialog> {
         'stock': int.parse(_stock.text.trim()),
         'is_active': _active,
       };
-      final repo = ref.read(adminRepositoryProvider);
+      final notifier = ref.read(adminProductsProvider.notifier);
       if (widget.product == null) {
-        await repo.createProduct(data);
+        await notifier.create(data);
       } else {
-        await repo.updateProduct(widget.product!.id, data);
+        await notifier.update(widget.product!.id, data);
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
