@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/category_model.dart';
 
 class CategoryRepository {
@@ -8,12 +9,6 @@ class CategoryRepository {
 
   Future<List<CategoryModel>> getCategories() async {
     final response = await _apiClient.get('/categories');
-    if (response is! Map<String, dynamic> || response['data'] is! List) {
-      throw const FormatException('Invalid categories response');
-    }
-    return (response['data'] as List)
-        .whereType<Map<String, dynamic>>()
-        .map(CategoryModel.fromJson)
-        .toList();
+    return ApiResponse.dataList(response).map(CategoryModel.fromJson).toList();
   }
 }
