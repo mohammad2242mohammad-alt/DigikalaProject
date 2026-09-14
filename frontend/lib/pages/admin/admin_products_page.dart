@@ -1,109 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/category_model.dart';
-import '../../models/product_model.dart';
+import '../../data/models/product.dart';
 import '../../providers/admin_provider.dart';
 
 class AdminProductsPage extends ConsumerWidget {
   const AdminProductsPage({super.key});
 
-  Future<void> _refresh(WidgetRef ref) async {
-    await Future.wait([
-      ref.read(adminProductsProvider.notifier).refresh(),
-      ref.read(adminCategoriesProvider.notifier).refresh(),
-    ]);
-  }
-
-  Future<void> _edit(BuildContext context, WidgetRef ref, List<CategoryModel> categories, [Product? product]) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (_) => _ProductDialog(product: product, categories: categories),
-    );
-    if (result == true && context.mounted) {
-      await ref.read(adminProductsProvider.notifier).refresh();
-    }
-  }
-
-  Future<void> _delete(BuildContext context, WidgetRef ref, Product product) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('حذف محصول'),
-        content: Text('محصول «${product.name}» حذف شود؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('لغو')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    try {
-      await ref.read(adminProductsProvider.notifier).delete(product.id);
-    } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productsAsync = ref.watch(adminProductsProvider);
-    final categoriesAsync = ref.watch(adminCategoriesProvider);
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('مدیریت محصولات')),
-        floatingActionButton: categoriesAsync.hasValue
-            ? FloatingActionButton.extended(
-                onPressed: () => _edit(context, ref, categoriesAsync.value!),
-                icon: const Icon(Icons.add),
-                label: const Text('محصول جدید'),
-              )
-            : null,
-        body: productsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('خطا: $error')),
-          data: (products) {
-            if (products.isEmpty) return const Center(child: Text('محصولی ثبت نشده است.'));
-            return RefreshIndicator(
-              onRefresh: () => _refresh(ref),
-              child: ListView.builder(
-                padding: const EdgeInsets.only(bottom: 90),
-                itemCount: products.length,
-                itemBuilder: (_, index) {
-                  final product = products[index];
-                  return Card(
-                    margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-                    child: ListTile(
-                      leading: product.image?.isNotEmpty == true
-                          ? Image.network(
-                              product.image!,
-                              width: 55,
-                              height: 55,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported),
-                            )
-                          : const Icon(Icons.image_outlined, size: 42),
-                      title: Text(product.name),
-                      subtitle: Text(
-                        'قیمت: ${product.effectivePrice.toStringAsFixed(0)} تومان\n'
-                        'موجودی: ${product.stock} | ${product.isActive ? 'فعال' : 'غیرفعال'}',
-                      ),
-                      isThreeLine: true,
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'edit' && categoriesAsync.hasValue) {
-                            _edit(context, ref, categoriesAsync.value!, product);
-                          }
-                          if (value == 'delete') _delete(context, ref, product);
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(value: 'edit', child: Text('ویرایش')),
-                          PopupMenuItem(value: 'delete', child: Text('حذف')),
-                        ],
-                      ),
-                    ),
-                  );
+    final products = ref.watch(adminProductsProvider);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('مدیریت محصولات'),
+        actions: [
+          IconButton(
+            onPressed: () => ref.read(adminProductsProvider.notifier).refresh(),
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await showDialog<void>(
+            context: context,
+            builder: (_) => const _ProductDialog(),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: products.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('$error')),
+        data: (items) => ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final product = items[index];
+            return ListTile(
+              title: Text(product.name),
+              subtitle: Text('${product.price}'),
+              onTap: () async {
+                await showDialog<void>(
+                  context: context,
+                  builder: (_) => _ProductDialog(product: product),
+                );
+              },
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () async {
+                  await ref.read(adminProductsProvider.notifier).delete(product.id);
                 },
               ),
             );
@@ -115,10 +60,9 @@ class AdminProductsPage extends ConsumerWidget {
 }
 
 class _ProductDialog extends ConsumerStatefulWidget {
-  const _ProductDialog({this.product, required this.categories});
+  const _ProductDialog({this.product});
 
   final Product? product;
-  final List<CategoryModel> categories;
 
   @override
   ConsumerState<_ProductDialog> createState() => _ProductDialogState();
@@ -139,15 +83,15 @@ class _ProductDialogState extends ConsumerState<_ProductDialog> {
   @override
   void initState() {
     super.initState();
-    final p = widget.product;
-    _name = TextEditingController(text: p?.name ?? '');
-    _description = TextEditingController(text: p?.description ?? '');
-    _price = TextEditingController(text: p?.price.toStringAsFixed(0) ?? '');
-    _discount = TextEditingController(text: p?.discountPrice?.toStringAsFixed(0) ?? '');
-    _image = TextEditingController(text: p?.image ?? '');
-    _stock = TextEditingController(text: p?.stock.toString() ?? '0');
-    _categoryId = p?.categoryId;
-    _active = p?.isActive ?? true;
+    final product = widget.product;
+    _name = TextEditingController(text: product?.name ?? '');
+    _description = TextEditingController(text: product?.description ?? '');
+    _price = TextEditingController(text: product?.price.toString() ?? '');
+    _discount = TextEditingController(text: product?.discountPrice?.toString() ?? '');
+    _image = TextEditingController(text: product?.image ?? '');
+    _stock = TextEditingController(text: product?.stock.toString() ?? '0');
+    _categoryId = product?.categoryId;
+    _active = product?.isActive ?? true;
   }
 
   @override
@@ -176,7 +120,7 @@ class _ProductDialogState extends ConsumerState<_ProductDialog> {
       if (widget.product == null) {
         await notifier.create(data);
       } else {
-        await notifier.update(widget.product!.id, data);
+        await notifier.saveProduct(widget.product!.id, data);
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -201,38 +145,20 @@ class _ProductDialogState extends ConsumerState<_ProductDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(controller: _name, decoration: const InputDecoration(labelText: 'نام'), validator: _required),
-                TextFormField(controller: _description, decoration: const InputDecoration(labelText: 'توضیحات'), maxLines: 3),
-                DropdownButtonFormField<int?>(
-                  initialValue: _categoryId,
-                  decoration: const InputDecoration(labelText: 'دسته‌بندی'),
-                  items: [
-                    const DropdownMenuItem<int?>(value: null, child: Text('بدون دسته')),
-                    ...widget.categories.map((c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.name))),
-                  ],
-                  onChanged: (value) => setState(() => _categoryId = value),
-                ),
+                TextFormField(controller: _description, decoration: const InputDecoration(labelText: 'توضیحات')),
                 TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'قیمت'), keyboardType: TextInputType.number, validator: _required),
-                TextFormField(controller: _discount, decoration: const InputDecoration(labelText: 'قیمت تخفیف'), keyboardType: TextInputType.number),
+                TextFormField(controller: _discount, decoration: const InputDecoration(labelText: 'قیمت تخفیف')),
+                TextFormField(controller: _image, decoration: const InputDecoration(labelText: 'تصویر')),
                 TextFormField(controller: _stock, decoration: const InputDecoration(labelText: 'موجودی'), keyboardType: TextInputType.number, validator: _required),
-                TextFormField(controller: _image, decoration: const InputDecoration(labelText: 'آدرس تصویر'), keyboardType: TextInputType.url),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('محصول فعال باشد'),
-                  value: _active,
-                  onChanged: (value) => setState(() => _active = value),
-                ),
+                SwitchListTile(value: _active, onChanged: (value) => setState(() => _active = value), title: const Text('فعال')),
               ],
             ),
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('لغو')),
-        FilledButton.icon(
-          onPressed: _saving ? null : _save,
-          icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-          label: const Text('ذخیره'),
-        ),
+        TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('انصراف')),
+        FilledButton(onPressed: _saving ? null : _save, child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('ذخیره')),
       ],
     );
   }
