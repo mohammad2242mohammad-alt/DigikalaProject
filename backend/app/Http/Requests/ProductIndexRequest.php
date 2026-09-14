@@ -23,17 +23,19 @@ class ProductIndexRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation(): void
+    public function withValidator($validator): void
     {
-        if ($this->filled('min_price') && $this->filled('max_price')) {
-            $minPrice = (float) $this->input('min_price');
-            $maxPrice = (float) $this->input('max_price');
-
-            if ($maxPrice < $minPrice) {
-                $this->merge([
-                    'max_price' => null,
-                ]);
+        $validator->after(function ($validator): void {
+            if (! $this->filled('min_price') || ! $this->filled('max_price')) {
+                return;
             }
-        }
+
+            if ((float) $this->input('max_price') < (float) $this->input('min_price')) {
+                $validator->errors()->add(
+                    'max_price',
+                    'The max price field must be greater than or equal to min price.'
+                );
+            }
+        });
     }
 }
