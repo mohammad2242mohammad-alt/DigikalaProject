@@ -10,6 +10,25 @@ class OrdersPage extends ConsumerWidget {
 
   String _money(double value) => '${PriceFormatter.format(value)} تومان';
 
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending':
+        return 'در انتظار پرداخت';
+      case 'paid':
+        return 'پرداخت شده';
+      case 'processing':
+        return 'در حال پردازش';
+      case 'shipped':
+        return 'ارسال شده';
+      case 'delivered':
+        return 'تحویل داده شده';
+      case 'cancelled':
+        return 'لغو شده';
+      default:
+        return status;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(ordersProvider);
@@ -33,6 +52,7 @@ class OrdersPage extends ConsumerWidget {
               itemBuilder: (context, index) => _OrderCard(
                 order: items[index],
                 money: _money,
+                statusLabel: _statusLabel(items[index].status),
               ),
             ),
           );
@@ -43,10 +63,15 @@ class OrdersPage extends ConsumerWidget {
 }
 
 class _OrderCard extends ConsumerStatefulWidget {
-  const _OrderCard({required this.order, required this.money});
+  const _OrderCard({
+    required this.order,
+    required this.money,
+    required this.statusLabel,
+  });
 
   final OrderModel order;
   final String Function(double) money;
+  final String statusLabel;
 
   @override
   ConsumerState<_OrderCard> createState() => _OrderCardState();
@@ -82,7 +107,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     return Card(
       child: ExpansionTile(
         title: Text('سفارش #${order.id}'),
-        subtitle: Text('${order.status} • ${widget.money(order.total)}'),
+        subtitle: Text('${widget.statusLabel} • ${widget.money(order.total)}'),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         children: [
           ...order.items.map(
