@@ -47,8 +47,8 @@ class CheckoutApiTest extends TestCase
 
         $checkout->assertCreated()
             ->assertJsonPath('data.status', 'pending')
-            ->assertJsonPath('data.subtotal', 1800000)
-            ->assertJsonPath('data.total', 1850000);
+            ->assertJsonPath('data.subtotal', '1800000.00')
+            ->assertJsonPath('data.total', '1850000.00');
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
