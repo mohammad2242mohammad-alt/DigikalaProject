@@ -4,6 +4,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/address_model.dart';
 import '../../providers/address_provider.dart';
 
+const Map<String, List<String>> _iranProvincesAndCities = {
+  'آذربایجان شرقی': ['تبریز', 'مراغه', 'مرند', 'میانه', 'اهر', 'بناب', 'سراب', 'شبستر', 'اسکو', 'هریس'],
+  'آذربایجان غربی': ['ارومیه', 'خوی', 'مهاباد', 'میاندوآب', 'بوکان', 'سلماس', 'نقده', 'پیرانشهر', 'ماکو', 'شاهین‌دژ'],
+  'اردبیل': ['اردبیل', 'مشگین‌شهر', 'پارس‌آباد', 'خلخال', 'گرمی', 'نمین', 'نیر', 'بیله‌سوار'],
+  'اصفهان': ['اصفهان', 'کاشان', 'خمینی‌شهر', 'نجف‌آباد', 'شاهین‌شهر', 'فلاورجان', 'شهرضا', 'مبارکه', 'گلپایگان', 'آران و بیدگل'],
+  'البرز': ['کرج', 'فردیس', 'نظرآباد', 'هشتگرد', 'طالقان', 'اشتهارد'],
+  'ایلام': ['ایلام', 'دهلران', 'آبدانان', 'ایوان', 'دره‌شهر', 'مهران', 'سرابله'],
+  'بوشهر': ['بوشهر', 'برازجان', 'گناوه', 'کنگان', 'جم', 'دیر', 'دشتی', 'عسلویه'],
+  'تهران': ['تهران', 'شهریار', 'اسلامشهر', 'قدس', 'ملارد', 'ری', 'ورامین', 'پاکدشت', 'دماوند', 'رودهن'],
+  'چهارمحال و بختیاری': ['شهرکرد', 'بروجن', 'فارسان', 'لردگان', 'اردل', 'سامان', 'بن', 'کوهرنگ'],
+  'خراسان جنوبی': ['بیرجند', 'قائن', 'طبس', 'فردوس', 'نهبندان', 'سرایان', 'درمیان'],
+  'خراسان رضوی': ['مشهد', 'نیشابور', 'سبزوار', 'تربت حیدریه', 'قوچان', 'تربت جام', 'کاشمر', 'چناران', 'گناباد', 'تایباد'],
+  'خراسان شمالی': ['بجنورد', 'شیروان', 'اسفراین', 'جاجرم', 'آشخانه', 'گرمه', 'فاروج'],
+  'خوزستان': ['اهواز', 'دزفول', 'آبادان', 'خرمشهر', 'بندر ماهشهر', 'اندیمشک', 'شوش', 'بهبهان', 'ایذه', 'مسجدسلیمان'],
+  'زنجان': ['زنجان', 'ابهر', 'خرمدره', 'قیدار', 'ماه‌نشان', 'طارم', 'سلطانیه'],
+  'سمنان': ['سمنان', 'شاهرود', 'دامغان', 'گرمسار', 'مهدی‌شهر', 'سرخه', 'میامی'],
+  'سیستان و بلوچستان': ['زاهدان', 'چابهار', 'زابل', 'ایرانشهر', 'سراوان', 'خاش', 'کنارک', 'نیک‌شهر'],
+  'فارس': ['شیراز', 'مرودشت', 'جهرم', 'فسا', 'کازرون', 'لار', 'داراب', 'آباده', 'اقلید', 'فیروزآباد'],
+  'قزوین': ['قزوین', 'تاکستان', 'آبیک', 'الوند', 'بوئین‌زهرا', 'آوج'],
+  'قم': ['قم', 'کهک'],
+  'کردستان': ['سنندج', 'سقز', 'مریوان', 'بانه', 'قروه', 'بیجار', 'کامیاران', 'دیواندره'],
+  'کرمان': ['کرمان', 'رفسنجان', 'سیرجان', 'جیرفت', 'بم', 'زرند', 'راور', 'شهربابک', 'کهنوج'],
+  'کرمانشاه': ['کرمانشاه', 'اسلام‌آباد غرب', 'سنقر', 'کنگاور', 'هرسین', 'صحنه', 'پاوه', 'جوانرود'],
+  'کهگیلویه و بویراحمد': ['یاسوج', 'دهدشت', 'گچساران', 'لیکک', 'سی‌سخت'],
+  'گلستان': ['گرگان', 'گنبد کاووس', 'علی‌آباد کتول', 'آق‌قلا', 'بندر ترکمن', 'کردکوی', 'مینودشت', 'کلاله'],
+  'گیلان': ['رشت', 'انزلی', 'لاهیجان', 'لنگرود', 'رودسر', 'آستانه اشرفیه', 'تالش', 'رودبار', 'فومن'],
+  'لرستان': ['خرم‌آباد', 'بروجرد', 'دورود', 'الیگودرز', 'کوهدشت', 'نورآباد', 'الشتر', 'پلدختر'],
+  'مازندران': ['ساری', 'بابل', 'آمل', 'قائم‌شهر', 'نوشهر', 'چالوس', 'تنکابن', 'بابلسر', 'بهشهر', 'رامسر'],
+  'مرکزی': ['اراک', 'ساوه', 'خمین', 'محلات', 'دلیجان', 'تفرش', 'آشتیان', 'شازند'],
+  'هرمزگان': ['بندرعباس', 'میناب', 'بندر لنگه', 'قشم', 'کیش', 'رودان', 'حاجی‌آباد', 'پارسیان'],
+  'همدان': ['همدان', 'ملایر', 'نهاوند', 'کبودرآهنگ', 'رزن', 'اسدآباد', 'تویسرکان'],
+  'یزد': ['یزد', 'میبد', 'اردکان', 'بافق', 'مهریز', 'اشکذر', 'ابرکوه', 'تفت'],
+};
+
 class AddressPage extends ConsumerWidget {
   const AddressPage({super.key});
 
@@ -25,11 +59,8 @@ class AddressPage extends ConsumerWidget {
           error: (error, _) => Center(child: Text('خطا: $error')),
           data: (items) {
             if (items.isEmpty) {
-              return const Center(
-                child: Text('هنوز آدرسی ثبت نکرده‌اید.'),
-              );
+              return const Center(child: Text('هنوز آدرسی ثبت نکرده‌اید.'));
             }
-
             return RefreshIndicator(
               onRefresh: () => ref.refresh(addressesProvider.future),
               child: ListView.builder(
@@ -45,14 +76,11 @@ class AddressPage extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                address.title?.isNotEmpty == true
-                                    ? address.title!
-                                    : address.city,
+                                address.title?.isNotEmpty == true ? address.title! : address.city,
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
-                            if (address.isDefault)
-                              const Chip(label: Text('پیش‌فرض')),
+                            if (address.isDefault) const Chip(label: Text('پیش‌فرض')),
                           ],
                         ),
                         subtitle: Padding(
@@ -89,51 +117,33 @@ class AddressPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _delete(
-    BuildContext context,
-    WidgetRef ref,
-    AddressModel address,
-  ) async {
+  Future<void> _delete(BuildContext context, WidgetRef ref, AddressModel address) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('حذف آدرس'),
         content: const Text('آیا از حذف این آدرس مطمئن هستید؟'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('حذف'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
         ],
       ),
     );
     if (confirmed != true) return;
-
     try {
       await ref.read(addressRepositoryProvider).delete(address.id);
       ref.invalidate(addressesProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('آدرس حذف شد.')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در حذف آدرس: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در حذف آدرس: $e')));
       }
     }
   }
 
-  Future<void> _openForm(
-    BuildContext context, {
-    AddressModel? address,
-  }) async {
+  Future<void> _openForm(BuildContext context, {AddressModel? address}) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -145,7 +155,6 @@ class AddressPage extends ConsumerWidget {
 
 class AddressFormSheet extends ConsumerStatefulWidget {
   const AddressFormSheet({super.key, this.address});
-
   final AddressModel? address;
 
   @override
@@ -157,12 +166,14 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   late final TextEditingController _title;
   late final TextEditingController _recipient;
   late final TextEditingController _phone;
-  late final TextEditingController _province;
-  late final TextEditingController _city;
   late final TextEditingController _address;
   late final TextEditingController _postalCode;
   late bool _isDefault;
+  String? _province;
+  String? _city;
   bool _saving = false;
+
+  List<String> get _cities => _province == null ? const [] : (_iranProvincesAndCities[_province] ?? const []);
 
   @override
   void initState() {
@@ -171,11 +182,12 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     _title = TextEditingController(text: item?.title ?? '');
     _recipient = TextEditingController(text: item?.recipientName ?? '');
     _phone = TextEditingController(text: item?.phone ?? '');
-    _province = TextEditingController(text: item?.province ?? '');
-    _city = TextEditingController(text: item?.city ?? '');
     _address = TextEditingController(text: item?.address ?? '');
     _postalCode = TextEditingController(text: item?.postalCode ?? '');
     _isDefault = item?.isDefault ?? false;
+    _province = _iranProvincesAndCities.containsKey(item?.province) ? item?.province : null;
+    final cities = _province == null ? const <String>[] : (_iranProvincesAndCities[_province] ?? const <String>[]);
+    _city = cities.contains(item?.city) ? item?.city : null;
   }
 
   @override
@@ -183,8 +195,6 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     _title.dispose();
     _recipient.dispose();
     _phone.dispose();
-    _province.dispose();
-    _city.dispose();
     _address.dispose();
     _postalCode.dispose();
     super.dispose();
@@ -193,52 +203,38 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-
     try {
       final repository = ref.read(addressRepositoryProvider);
-      final data = {
-        'title': _title.text.trim().isEmpty ? null : _title.text.trim(),
-        'recipientName': _recipient.text.trim(),
-        'phone': _phone.text.trim(),
-        'province': _province.text.trim(),
-        'city': _city.text.trim(),
-        'address': _address.text.trim(),
-        'postalCode': _postalCode.text.trim(),
-        'isDefault': _isDefault,
-      };
-
+      final title = _title.text.trim().isEmpty ? null : _title.text.trim();
       if (widget.address == null) {
         await repository.create(
-          title: data['title'] as String?,
-          recipientName: data['recipientName'] as String,
-          phone: data['phone'] as String,
-          province: data['province'] as String,
-          city: data['city'] as String,
-          address: data['address'] as String,
-          postalCode: data['postalCode'] as String,
-          isDefault: data['isDefault'] as bool,
+          title: title,
+          recipientName: _recipient.text.trim(),
+          phone: _phone.text.trim(),
+          province: _province!,
+          city: _city!,
+          address: _address.text.trim(),
+          postalCode: _postalCode.text.trim(),
+          isDefault: _isDefault,
         );
       } else {
         await repository.update(
           id: widget.address!.id,
-          title: data['title'] as String?,
-          recipientName: data['recipientName'] as String,
-          phone: data['phone'] as String,
-          province: data['province'] as String,
-          city: data['city'] as String,
-          address: data['address'] as String,
-          postalCode: data['postalCode'] as String,
-          isDefault: data['isDefault'] as bool,
+          title: title,
+          recipientName: _recipient.text.trim(),
+          phone: _phone.text.trim(),
+          province: _province!,
+          city: _city!,
+          address: _address.text.trim(),
+          postalCode: _postalCode.text.trim(),
+          isDefault: _isDefault,
         );
       }
-
       ref.invalidate(addressesProvider);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در ذخیره آدرس: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -246,7 +242,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   }
 
   String? _required(String? value, String label) {
-    if (value == null || value.trim().isEmpty) return '$label را وارد کنید';
+    if (value == null || value.trim().isEmpty) return '$label را انتخاب/وارد کنید';
     return null;
   }
 
@@ -255,12 +251,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          16 + MediaQuery.viewInsetsOf(context).bottom,
-        ),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -275,8 +266,10 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                 _field(_title, 'عنوان آدرس', required: false),
                 _field(_recipient, 'نام گیرنده'),
                 _field(_phone, 'شماره تماس', keyboardType: TextInputType.phone),
-                _field(_province, 'استان'),
-                _field(_city, 'شهر'),
+                _provinceDropdown(),
+                const SizedBox(height: 12),
+                _cityDropdown(),
+                const SizedBox(height: 12),
                 _field(_address, 'آدرس کامل', maxLines: 3),
                 _field(_postalCode, 'کد پستی', keyboardType: TextInputType.number),
                 SwitchListTile(
@@ -291,11 +284,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: _saving
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Text('ذخیره آدرس'),
                   ),
                 ),
@@ -304,6 +293,39 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _provinceDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _province,
+      decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
+      items: _iranProvincesAndCities.keys
+          .map((province) => DropdownMenuItem(value: province, child: Text(province)))
+          .toList(),
+      validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
+      onChanged: _saving
+          ? null
+          : (value) {
+              setState(() {
+                _province = value;
+                _city = null;
+              });
+            },
+    );
+  }
+
+  Widget _cityDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _city,
+      decoration: InputDecoration(
+        labelText: 'شهر',
+        border: const OutlineInputBorder(),
+        helperText: _province == null ? 'ابتدا استان را انتخاب کنید' : null,
+      ),
+      items: _cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
+      validator: (value) => value == null ? 'شهر را انتخاب کنید' : null,
+      onChanged: _saving || _province == null ? null : (value) => setState(() => _city = value),
     );
   }
 
@@ -320,10 +342,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
+        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
         validator: required ? (value) => _required(value, label) : null,
       ),
     );
