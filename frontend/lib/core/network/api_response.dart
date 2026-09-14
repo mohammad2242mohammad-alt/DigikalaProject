@@ -11,9 +11,10 @@ class ApiResponse {
 
   static List<Map<String, dynamic>> dataList(dynamic response) {
     final data = response is Map<String, dynamic> ? response['data'] : null;
-    if (data is! List) {
+    final list = data is Map<String, dynamic> ? data['data'] : data;
+    if (list is! List) {
       throw const FormatException('Invalid API list response');
     }
-    return data.whereType<Map<String, dynamic>>().toList();
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 }
