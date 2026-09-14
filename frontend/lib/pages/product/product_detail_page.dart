@@ -79,6 +79,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           final product = snapshot.data!;
           final hasDiscount = product.discountPrice != null &&
               product.discountPrice! < product.price;
+          final discountPercent = hasDiscount
+              ? ((product.price - product.discountPrice!) / product.price * 100).round()
+              : 0;
           final canBuy = product.isActive && product.stock > 0;
 
           return ListView(
@@ -118,14 +121,35 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 ],
               ),
               const SizedBox(height: 20),
-              if (hasDiscount)
-                Text(
-                  '${PriceFormatter.format(product.price)} تومان',
-                  style: const TextStyle(
-                    decoration: TextDecoration.lineThrough,
-                    color: Colors.grey,
-                  ),
+              if (hasDiscount) ...[
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '$discountPercent٪ تخفیف',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${PriceFormatter.format(product.price)} تومان',
+                      style: const TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 6),
+              ],
               Text(
                 '${PriceFormatter.format(product.effectivePrice)} تومان',
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
