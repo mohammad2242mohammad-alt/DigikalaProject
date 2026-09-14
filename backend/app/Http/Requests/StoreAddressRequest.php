@@ -16,7 +16,7 @@ class StoreAddressRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:100'],
             'recipient_name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'regex:/^09\d{9}$/'],
             'province' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:2000'],
