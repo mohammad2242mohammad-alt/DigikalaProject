@@ -261,11 +261,9 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   }
 
   TextInputFormatter get _iranPhoneFormatter => TextInputFormatter.withFunction((oldValue, newValue) {
-        final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-        final suffix = digits.startsWith('09') ? digits.substring(2) : digits.replaceFirst(RegExp(r'^0?9?'), '');
-        final limitedSuffix = suffix.length > 9 ? suffix.substring(0, 9) : suffix;
-        final result = '09$limitedSuffix';
-        return TextEditingValue(text: result, selection: TextSelection.collapsed(offset: result.length));
+        final text = newValue.text;
+        if (!RegExp(r'^09\d{0,9}$').hasMatch(text)) return oldValue;
+        return newValue.copyWith(selection: TextSelection.collapsed(offset: text.length));
       });
 
   @override
