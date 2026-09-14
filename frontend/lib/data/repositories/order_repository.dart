@@ -9,16 +9,7 @@ class OrderRepository {
 
   Future<List<OrderModel>> getOrders() async {
     final response = await _apiClient.get('/orders');
-    final list = response is Map<String, dynamic> && response['data'] is Map<String, dynamic>
-        ? response['data']['data']
-        : response is Map<String, dynamic>
-            ? response['data']
-            : null;
-    if (list is! List) throw const FormatException('Invalid orders response');
-    return list
-        .whereType<Map<String, dynamic>>()
-        .map(OrderModel.fromJson)
-        .toList();
+    return ApiResponse.dataList(response).map(OrderModel.fromJson).toList();
   }
 
   Future<OrderModel> getOrder(int id) async {
