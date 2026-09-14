@@ -46,7 +46,6 @@ class AddressPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final addresses = ref.watch(addressesProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('آدرس‌های من')),
       floatingActionButton: FloatingActionButton.extended(
@@ -72,25 +71,13 @@ class AddressPage extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                address.title?.isNotEmpty == true ? address.title! : address.city,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            if (address.isDefault) const Chip(label: Text('پیش‌فرض')),
-                          ],
-                        ),
+                        title: Row(children: [
+                          Expanded(child: Text(address.title?.isNotEmpty == true ? address.title! : address.city, style: const TextStyle(fontWeight: FontWeight.bold))),
+                          if (address.isDefault) const Chip(label: Text('پیش‌فرض')),
+                        ]),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            '${address.recipientName} - ${address.phone}\n'
-                            '${address.province}، ${address.city}\n'
-                            '${address.address}\nکدپستی: ${address.postalCode}\n'
-                            '${address.latitude != null && address.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
-                          ),
+                          child: Text('${address.recipientName} - ${address.phone}\n${address.province}، ${address.city}\n${address.address}\nکدپستی: ${address.postalCode}\n${address.latitude != null && address.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}'),
                         ),
                         isThreeLine: true,
                         trailing: PopupMenuButton<String>(
@@ -140,12 +127,7 @@ class AddressPage extends ConsumerWidget {
   }
 
   Future<void> _openForm(BuildContext context, {AddressModel? address}) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => AddressFormSheet(address: address),
-    );
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true, useSafeArea: true, builder: (_) => AddressFormSheet(address: address));
   }
 }
 
@@ -203,12 +185,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
 
   Future<void> _pickLocation() async {
     final location = await Navigator.of(context).push<({double latitude, double longitude})>(
-      MaterialPageRoute(
-        builder: (_) => LocationPickerPage(
-          initialLatitude: _latitude,
-          initialLongitude: _longitude,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => LocationPickerPage(initialLatitude: _latitude, initialLongitude: _longitude)),
     );
     if (location == null || !mounted) return;
     setState(() {
@@ -225,34 +202,45 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     }
     setState(() => _saving = true);
     try {
-      final title = _title.text.trim();
       final notifier = ref.read(addressesProvider.notifier);
+      final args = {
+        'title': _title.text.trim(),
+        'recipientName': _recipient.text.trim(),
+        'phone': _phone.text.trim(),
+        'province': _province!,
+        'city': _city!,
+        'address': _address.text.trim(),
+        'postalCode': _postalCode.text.trim(),
+        'latitude': _latitude,
+        'longitude': _longitude,
+        'isDefault': _isDefault,
+      };
       if (widget.address == null) {
         await notifier.create(
-          title: title,
-          recipientName: _recipient.text.trim(),
-          phone: _phone.text.trim(),
-          province: _province!,
-          city: _city!,
-          address: _address.text.trim(),
-          postalCode: _postalCode.text.trim(),
-          latitude: _latitude,
-          longitude: _longitude,
-          isDefault: _isDefault,
+          title: args['title'] as String,
+          recipientName: args['recipientName'] as String,
+          phone: args['phone'] as String,
+          province: args['province'] as String,
+          city: args['city'] as String,
+          address: args['address'] as String,
+          postalCode: args['postalCode'] as String,
+          latitude: args['latitude'] as double?,
+          longitude: args['longitude'] as double?,
+          isDefault: args['isDefault'] as bool,
         );
       } else {
         await notifier.saveAddress(
           id: widget.address!.id,
-          title: title,
-          recipientName: _recipient.text.trim(),
-          phone: _phone.text.trim(),
-          province: _province!,
-          city: _city!,
-          address: _address.text.trim(),
-          postalCode: _postalCode.text.trim(),
-          latitude: _latitude,
-          longitude: _longitude,
-          isDefault: _isDefault,
+          title: args['title'] as String,
+          recipientName: args['recipientName'] as String,
+          phone: args['phone'] as String,
+          province: args['province'] as String,
+          city: args['city'] as String,
+          address: args['address'] as String,
+          postalCode: args['postalCode'] as String,
+          latitude: args['latitude'] as double?,
+          longitude: args['longitude'] as double?,
+          isDefault: args['isDefault'] as bool,
         );
       }
       if (mounted) Navigator.of(context).pop();
@@ -263,10 +251,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     }
   }
 
-  String? _required(String? value, String label) {
-    if (value == null || value.trim().isEmpty) return '$label را وارد کنید';
-    return null;
-  }
+  String? _required(String? value, String label) => value == null || value.trim().isEmpty ? '$label را وارد کنید' : null;
 
   String? _phoneValidator(String? value) {
     final phone = value?.trim() ?? '';
@@ -276,16 +261,11 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   }
 
   TextInputFormatter get _iranPhoneFormatter => TextInputFormatter.withFunction((oldValue, newValue) {
-        var digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-        if (digits.startsWith('09')) {
-          digits = digits.substring(0, digits.length.clamp(0, 11));
-        } else {
-          digits = '09${digits.replaceFirst(RegExp(r'^0?9?'), '')}'.substring(0, ('09$digits').length.clamp(0, 11));
-        }
-        return TextEditingValue(
-          text: digits,
-          selection: TextSelection.collapsed(offset: digits.length),
-        );
+        final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+        final suffix = digits.startsWith('09') ? digits.substring(2) : digits.replaceFirst(RegExp(r'^0?9?'), '');
+        final limitedSuffix = suffix.length > 9 ? suffix.substring(0, 9) : suffix;
+        final result = '09$limitedSuffix';
+        return TextEditingValue(text: result, selection: TextSelection.collapsed(offset: result.length));
       });
 
   @override
@@ -304,14 +284,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                 const SizedBox(height: 16),
                 _field(_title, 'عنوان آدرس'),
                 _field(_recipient, 'نام گیرنده'),
-                _field(
-                  _phone,
-                  'شماره تماس',
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [_iranPhoneFormatter],
-                  hintText: '09xxxxxxxxx',
-                  validator: _phoneValidator,
-                ),
+                _field(_phone, 'شماره تماس', keyboardType: TextInputType.phone, inputFormatters: [_iranPhoneFormatter], hintText: '09xxxxxxxxx', validator: _phoneValidator),
                 _provinceDropdown(),
                 const SizedBox(height: 12),
                 _cityDropdown(),
@@ -323,21 +296,12 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                 ),
                 if (_latitude != null && _longitude != null) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    'موقعیت: ${_latitude!.toStringAsFixed(6)}، ${_longitude!.toStringAsFixed(6)}',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text('موقعیت: ${_latitude!.toStringAsFixed(6)}، ${_longitude!.toStringAsFixed(6)}', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
                 ],
                 const SizedBox(height: 12),
                 _field(_address, 'آدرس کامل', maxLines: 3),
                 _field(_postalCode, 'کد پستی', keyboardType: TextInputType.number),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('آدرس پیش‌فرض'),
-                  value: _isDefault,
-                  onChanged: _saving ? null : (value) => setState(() => _isDefault = value),
-                ),
+                SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('آدرس پیش‌فرض'), value: _isDefault, onChanged: _saving ? null : (value) => setState(() => _isDefault = value)),
                 const SizedBox(height: 8),
                 FilledButton(
                   onPressed: _saving ? null : _save,
@@ -354,42 +318,26 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     );
   }
 
-  Widget _provinceDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: _province,
-      decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
-      items: _iranProvincesAndCities.keys.map((province) => DropdownMenuItem(value: province, child: Text(province))).toList(),
-      validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
-      onChanged: _saving ? null : (value) => setState(() {
-            _province = value;
-            _city = null;
-          }),
-    );
-  }
+  Widget _provinceDropdown() => DropdownButtonFormField<String>(
+        initialValue: _province,
+        decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
+        items: _iranProvincesAndCities.keys.map((province) => DropdownMenuItem(value: province, child: Text(province))).toList(),
+        validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
+        onChanged: _saving ? null : (value) => setState(() {
+              _province = value;
+              _city = null;
+            }),
+      );
 
-  Widget _cityDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: _city,
-      decoration: InputDecoration(
-        labelText: 'شهر',
-        border: const OutlineInputBorder(),
-        helperText: _province == null ? 'ابتدا استان را انتخاب کنید' : null,
-      ),
-      items: _cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
-      validator: (value) => value == null ? 'شهر را انتخاب کنید' : null,
-      onChanged: _saving || _province == null ? null : (value) => setState(() => _city = value),
-    );
-  }
+  Widget _cityDropdown() => DropdownButtonFormField<String>(
+        initialValue: _city,
+        decoration: InputDecoration(labelText: 'شهر', border: const OutlineInputBorder(), helperText: _province == null ? 'ابتدا استان را انتخاب کنید' : null),
+        items: _cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
+        validator: (value) => value == null ? 'شهر را انتخاب کنید' : null,
+        onChanged: _saving || _province == null ? null : (value) => setState(() => _city = value),
+      );
 
-  Widget _field(
-    TextEditingController controller,
-    String label, {
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    List<TextInputFormatter>? inputFormatters,
-    String? hintText,
-    String? Function(String?)? validator,
-  }) {
+  Widget _field(TextEditingController controller, String label, {TextInputType? keyboardType, int maxLines = 1, List<TextInputFormatter>? inputFormatters, String? hintText, String? Function(String?)? validator}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
