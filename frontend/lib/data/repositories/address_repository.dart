@@ -22,6 +22,8 @@ class AddressRepository {
     required String city,
     required String address,
     required String postalCode,
+    double? latitude,
+    double? longitude,
     bool isDefault = false,
   }) async {
     final response = await _apiClient.post('/addresses', body: {
@@ -32,6 +34,8 @@ class AddressRepository {
       'city': city,
       'address': address,
       'postal_code': postalCode,
+      'latitude': latitude,
+      'longitude': longitude,
       'is_default': isDefault,
     });
     return AddressModel.fromJson(ApiResponse.dataMap(response));
@@ -46,6 +50,8 @@ class AddressRepository {
     required String city,
     required String address,
     required String postalCode,
+    double? latitude,
+    double? longitude,
     bool isDefault = false,
   }) async {
     final response = await _apiClient.patch('/addresses/$id', body: {
@@ -56,6 +62,8 @@ class AddressRepository {
       'city': city,
       'address': address,
       'postal_code': postalCode,
+      'latitude': latitude,
+      'longitude': longitude,
       'is_default': isDefault,
     });
     return AddressModel.fromJson(ApiResponse.dataMap(response));
