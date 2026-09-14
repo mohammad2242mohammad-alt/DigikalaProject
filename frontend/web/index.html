@@ -17,6 +17,16 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
+  <!-- Keep the browser's native vertical scrollbar on the right.
+       Flutter pages control Persian text direction independently with
+       Directionality, so this does not change the app's RTL content. -->
+  <style>
+    html,
+    body {
+      direction: ltr !important;
+    }
+  </style>
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -32,7 +42,7 @@
 <body>
   <!--
     You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration for the Flutter loader
+    This is useful to provide custom configuration for the Flutter loader
     or to give the user feedback during initialization.
 
     For more details: https://docs.flutter.dev/platform-integration/web/initialization
