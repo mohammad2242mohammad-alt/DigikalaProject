@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/product_model.dart';
 
 class ProductRepository {
@@ -24,13 +25,6 @@ class ProductRepository {
     };
 
     final decoded = await _apiClient.get('/products', queryParameters: query);
-    if (decoded is! Map<String, dynamic> || decoded['data'] is! List) {
-      throw const FormatException('Invalid products response');
-    }
-
-    return (decoded['data'] as List)
-        .whereType<Map<String, dynamic>>()
-        .map(Product.fromJson)
-        .toList();
+    return ApiResponse.dataList(decoded).map(Product.fromJson).toList();
   }
 }
