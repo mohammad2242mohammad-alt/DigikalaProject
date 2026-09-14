@@ -33,18 +33,16 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
     setState(() => _submitting = true);
     try {
-      final order = await ref.read(orderRepositoryProvider).checkout(
+      await ref.read(orderRepositoryProvider).checkout(
             addressId: address.id,
           );
       if (!mounted) return;
-      final payment = await ref.read(orderRepositoryProvider).pay(order.id);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('پرداخت موفق بود: ${payment.status}')),
-      );
       ref.invalidate(ordersProvider);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OrdersPage()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('سفارش ثبت شد. برای نهایی شدن، پرداخت را انجام دهید.')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -148,8 +146,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.payment),
-                  label: Text(_submitting ? 'در حال ثبت سفارش...' : 'ثبت سفارش و پرداخت'),
+                      : const Icon(Icons.arrow_forward),
+                  label: Text(_submitting ? 'در حال ثبت سفارش...' : 'ثبت سفارش'),
                 ),
               ],
             );
