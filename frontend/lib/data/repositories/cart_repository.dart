@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/cart_model.dart';
 
 class CartRepository {
@@ -24,10 +25,5 @@ class CartRepository {
 
   Future<CartModel> clear() async => _parse(await _apiClient.delete('/cart'));
 
-  CartModel _parse(dynamic response) {
-    if (response is! Map<String, dynamic> || response['data'] is! Map<String, dynamic>) {
-      throw const FormatException('Invalid cart response');
-    }
-    return CartModel.fromJson(response['data'] as Map<String, dynamic>);
-  }
+  CartModel _parse(dynamic response) => CartModel.fromJson(ApiResponse.dataMap(response));
 }
