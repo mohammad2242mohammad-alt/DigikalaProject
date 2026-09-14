@@ -26,6 +26,8 @@ class AddressNotifier extends AsyncNotifier<List<AddressModel>> {
     required String city,
     required String address,
     required String postalCode,
+    double? latitude,
+    double? longitude,
     bool isDefault = false,
   }) async {
     await _run(() => _repository.create(
@@ -36,6 +38,8 @@ class AddressNotifier extends AsyncNotifier<List<AddressModel>> {
           city: city,
           address: address,
           postalCode: postalCode,
+          latitude: latitude,
+          longitude: longitude,
           isDefault: isDefault,
         ));
   }
@@ -49,6 +53,8 @@ class AddressNotifier extends AsyncNotifier<List<AddressModel>> {
     required String city,
     required String address,
     required String postalCode,
+    double? latitude,
+    double? longitude,
     bool isDefault = false,
   }) async {
     await _run(() => _repository.update(
@@ -60,6 +66,8 @@ class AddressNotifier extends AsyncNotifier<List<AddressModel>> {
           city: city,
           address: address,
           postalCode: postalCode,
+          latitude: latitude,
+          longitude: longitude,
           isDefault: isDefault,
         ));
   }
