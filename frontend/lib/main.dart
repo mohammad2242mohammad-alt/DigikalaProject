@@ -19,9 +19,12 @@ class RightScrollbarBehavior extends MaterialScrollBehavior {
     ScrollableDetails details,
   ) {
     if (details.direction == Axis.vertical) {
-      return Scrollbar(
-        scrollbarOrientation: ScrollbarOrientation.right,
-        child: child,
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Scrollbar(
+          scrollbarOrientation: ScrollbarOrientation.right,
+          child: child,
+        ),
       );
     }
 
