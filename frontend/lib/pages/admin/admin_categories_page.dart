@@ -161,7 +161,7 @@ class _CategoryDialogState extends ConsumerState<_CategoryDialog> {
       if (widget.category == null) {
         await notifier.create(data);
       } else {
-        await notifier.update(widget.category!.id, data);
+        await notifier.saveCategory(widget.category!.id, data);
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
