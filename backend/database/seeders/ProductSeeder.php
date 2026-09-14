@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
 
@@ -9,8 +10,13 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
+        $mobileCategoryId = Category::where('slug', 'mobile')->value('id');
+        $laptopCategoryId = Category::where('slug', 'laptop-computer')->value('id');
+        $headphonesCategoryId = Category::where('slug', 'headphones')->value('id');
+
         $products = [
             [
+                'category_id' => $mobileCategoryId,
                 'name' => 'گوشی موبایل سامسونگ Galaxy A55',
                 'description' => 'گوشی میان رده سامسونگ',
                 'price' => 18500000,
@@ -22,6 +28,7 @@ class ProductSeeder extends Seeder
                 'views' => 120,
             ],
             [
+                'category_id' => $laptopCategoryId,
                 'name' => 'لپ تاپ ASUS VivoBook',
                 'description' => 'لپ تاپ مناسب کار و دانشجویی',
                 'price' => 32000000,
@@ -33,6 +40,7 @@ class ProductSeeder extends Seeder
                 'views' => 80,
             ],
             [
+                'category_id' => $headphonesCategoryId,
                 'name' => 'هدفون بی سیم',
                 'description' => 'هدفون بلوتوثی با کیفیت',
                 'price' => 2500000,
