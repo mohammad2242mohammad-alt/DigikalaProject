@@ -58,10 +58,11 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                subdomains: const ['a', 'b', 'c'],
-                userAgentPackageName: 'com.example.frontend',
+                urlTemplate: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
                 maxZoom: 19,
+              ),
+              const SimpleAttributionWidget(
+                source: Text('Esri'),
               ),
               if (_selectedLocation != null)
                 MarkerLayer(
