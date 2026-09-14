@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Address;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,6 +15,9 @@ class CheckoutApiTest extends TestCase
 
     public function test_checkout_creates_order_and_payment_and_decrements_stock(): void
     {
+        Setting::setValue('shipping_price', 50000);
+        Setting::setValue('free_shipping_threshold', 1000000);
+
         $user = User::factory()->create();
         $address = Address::create([
             'user_id' => $user->id,
@@ -48,7 +52,7 @@ class CheckoutApiTest extends TestCase
         $checkout->assertCreated()
             ->assertJsonPath('data.status', 'pending')
             ->assertJsonPath('data.subtotal', '1800000.00')
-            ->assertJsonPath('data.total', '1850000.00');
+            ->assertJsonPath('data.total', '1800000.00');
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
@@ -57,11 +61,11 @@ class CheckoutApiTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'user_id' => $user->id,
             'status' => 'pending',
-            'total' => 1850000,
+            'total' => 1800000,
         ]);
         $this->assertDatabaseHas('payments', [
             'status' => 'unpaid',
-            'amount' => 1850000,
+            'amount' => 1800000,
         ]);
     }
 
