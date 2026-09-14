@@ -40,7 +40,6 @@ class OrderNotifier extends AsyncNotifier<List<OrderModel>> {
   }
 
   Future<T> _run<T>(Future<T> Function() operation) async {
-    final previous = state.valueOrNull;
     state = const AsyncLoading();
     try {
       final result = await operation();
@@ -48,10 +47,6 @@ class OrderNotifier extends AsyncNotifier<List<OrderModel>> {
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
       rethrow;
-    } finally {
-      if (previous != null && state.hasError) {
-        // Keep the error state so the UI can show the real operation failure.
-      }
     }
   }
 
