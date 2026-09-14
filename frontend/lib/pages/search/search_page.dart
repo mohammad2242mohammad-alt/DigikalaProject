@@ -40,60 +40,63 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('فیلتر و مرتب‌سازی', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: minController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'حداقل قیمت', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: maxController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'حداکثر قیمت', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: selectedSort,
-                decoration: const InputDecoration(labelText: 'مرتب‌سازی', border: OutlineInputBorder()),
-                items: const [
-                  DropdownMenuItem(value: 'latest', child: Text('جدیدترین')),
-                  DropdownMenuItem(value: 'price_asc', child: Text('ارزان‌ترین')),
-                  DropdownMenuItem(value: 'price_desc', child: Text('گران‌ترین')),
-                  DropdownMenuItem(value: 'rating', child: Text('بالاترین امتیاز')),
-                  DropdownMenuItem(value: 'popular', child: Text('محبوب‌ترین')),
-                ],
-                onChanged: (value) {
-                  if (value != null) setSheetState(() => selectedSort = value);
-                },
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                  final min = double.tryParse(minController.text.trim());
-                  final max = double.tryParse(maxController.text.trim());
-                  if (min != null && max != null && max < min) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حداکثر قیمت باید بیشتر یا مساوی حداقل قیمت باشد.')));
-                    return;
-                  }
-                  Navigator.pop(context);
-                  setState(() {
-                    _minPrice = min;
-                    _maxPrice = max;
-                    _sort = selectedSort;
-                  });
-                },
-                child: const Text('اعمال فیلتر'),
-              ),
-            ],
+      builder: (context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: StatefulBuilder(
+          builder: (context, setSheetState) => Padding(
+            padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('فیلتر و مرتب‌سازی', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: minController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'حداقل قیمت', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: maxController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'حداکثر قیمت', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedSort,
+                  decoration: const InputDecoration(labelText: 'مرتب‌سازی', border: OutlineInputBorder()),
+                  items: const [
+                    DropdownMenuItem(value: 'latest', child: Text('جدیدترین')),
+                    DropdownMenuItem(value: 'price_asc', child: Text('ارزان‌ترین')),
+                    DropdownMenuItem(value: 'price_desc', child: Text('گران‌ترین')),
+                    DropdownMenuItem(value: 'rating', child: Text('بالاترین امتیاز')),
+                    DropdownMenuItem(value: 'popular', child: Text('محبوب‌ترین')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) setSheetState(() => selectedSort = value);
+                  },
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () {
+                    final min = double.tryParse(minController.text.trim());
+                    final max = double.tryParse(maxController.text.trim());
+                    if (min != null && max != null && max < min) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حداکثر قیمت باید بیشتر یا مساوی حداقل قیمت باشد.')));
+                      return;
+                    }
+                    Navigator.pop(context);
+                    setState(() {
+                      _minPrice = min;
+                      _maxPrice = max;
+                      _sort = selectedSort;
+                    });
+                  },
+                  child: const Text('اعمال فیلتر'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -113,15 +116,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productSearchProvider(_query));
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: Text(widget.title ?? 'جستجوی محصولات')),
-        body: Column(
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title ?? 'جستجوی محصولات')),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
               child: Row(
+                textDirection: TextDirection.rtl,
                 children: [
                   Expanded(
                     child: TextField(
