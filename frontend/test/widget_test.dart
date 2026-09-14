@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:frontend/main.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/models/user_model.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
