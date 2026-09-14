@@ -19,12 +19,18 @@ class Address extends Model
         'city',
         'address',
         'postal_code',
+        'latitude',
+        'longitude',
         'is_default',
     ];
 
     protected function casts(): array
     {
-        return ['is_default' => 'boolean'];
+        return [
+            'is_default' => 'boolean',
+            'latitude' => 'float',
+            'longitude' => 'float',
+        ];
     }
 
     public function user(): BelongsTo
