@@ -13,7 +13,7 @@ class CheckoutApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_checkout_creates_order_and_payment_and_decrements_stock(): void
+    public function test_checkout_creates_pending_order_without_decreasing_stock(): void
     {
         Setting::setValue('shipping_price', 50000);
         Setting::setValue('free_shipping_threshold', 1000000);
@@ -56,7 +56,7 @@ class CheckoutApiTest extends TestCase
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
-            'stock' => 1,
+            'stock' => 3,
         ]);
         $this->assertDatabaseHas('orders', [
             'user_id' => $user->id,
@@ -69,7 +69,7 @@ class CheckoutApiTest extends TestCase
         ]);
     }
 
-    public function test_mock_payment_marks_order_paid(): void
+    public function test_mock_payment_marks_order_paid_and_decrements_stock(): void
     {
         $user = User::factory()->create();
         $address = Address::create([
@@ -93,11 +93,20 @@ class CheckoutApiTest extends TestCase
             ->assertCreated()
             ->json('data.id');
 
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'stock' => 2,
+        ]);
+
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/orders/{$orderId}/pay")
             ->assertOk()
             ->assertJsonPath('data.status', 'paid');
 
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'stock' => 1,
+        ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $orderId,
             'status' => 'paid',
