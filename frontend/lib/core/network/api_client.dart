@@ -24,6 +24,9 @@ class ApiClient {
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async =>
       _send(() => http.post(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body ?? {})));
 
+  Future<dynamic> put(String path, {Map<String, dynamic>? body}) async =>
+      _send(() => http.put(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body ?? {})));
+
   Future<dynamic> patch(String path, {Map<String, dynamic>? body}) async =>
       _send(() => http.patch(Uri.parse('$baseUrl$path'), headers: _headers, body: jsonEncode(body ?? {})));
 
