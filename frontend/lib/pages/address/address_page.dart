@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/address_model.dart';
@@ -244,6 +245,15 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     return null;
   }
 
+  String? _phoneValidator(String? value) {
+    final phone = value?.trim() ?? '';
+    if (phone.isEmpty) return 'شماره تماس را وارد کنید';
+    if (!RegExp(r'^09\d{9}$').hasMatch(phone)) {
+      return 'شماره تماس باید ۱۱ رقمی و با 09 شروع شود';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -263,7 +273,14 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                 const SizedBox(height: 16),
                 _field(_title, 'عنوان آدرس'),
                 _field(_recipient, 'نام گیرنده'),
-                _field(_phone, 'شماره تماس', keyboardType: TextInputType.phone),
+                _field(
+                  _phone,
+                  'شماره تماس',
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(11)],
+                  hintText: '09xxxxxxxxx',
+                  validator: _phoneValidator,
+                ),
                 _provinceDropdown(),
                 const SizedBox(height: 12),
                 _cityDropdown(),
@@ -332,15 +349,19 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     String label, {
     TextInputType? keyboardType,
     int maxLines = 1,
+    List<TextInputFormatter>? inputFormatters,
+    String? hintText,
+    String? Function(String?)? validator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         maxLines: maxLines,
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-        validator: (value) => _required(value, label),
+        decoration: InputDecoration(labelText: label, hintText: hintText, border: const OutlineInputBorder()),
+        validator: validator ?? (value) => _required(value, label),
       ),
     );
   }
