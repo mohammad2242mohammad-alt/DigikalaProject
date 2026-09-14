@@ -44,7 +44,7 @@ class OrdersPage extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            onRefresh: () => ref.refresh(ordersProvider.future),
+            onRefresh: () => ref.read(ordersProvider.notifier).refreshOrders(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: items.length,
@@ -83,12 +83,11 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
   Future<void> _pay() async {
     setState(() => _paying = true);
     try {
-      await ref.read(orderRepositoryProvider).pay(widget.order.id);
+      await ref.read(ordersProvider.notifier).pay(widget.order.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('پرداخت با موفقیت انجام شد.')),
       );
-      ref.invalidate(ordersProvider);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
