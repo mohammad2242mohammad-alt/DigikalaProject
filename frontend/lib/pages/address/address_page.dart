@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/address_model.dart';
 import '../../providers/address_provider.dart';
+import 'location_picker_page.dart';
 
 const Map<String, List<String>> _iranProvincesAndCities = {
   'آذربایجان شرقی': ['تبریز', 'مراغه', 'مرند', 'میانه', 'اهر', 'بناب', 'سراب', 'شبستر', 'اسکو', 'هریس'],
@@ -59,9 +60,7 @@ class AddressPage extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text('خطا: $error')),
           data: (items) {
-            if (items.isEmpty) {
-              return const Center(child: Text('هنوز آدرسی ثبت نکرده‌اید.'));
-            }
+            if (items.isEmpty) return const Center(child: Text('هنوز آدرسی ثبت نکرده‌اید.'));
             return RefreshIndicator(
               onRefresh: () => ref.refresh(addressesProvider.future),
               child: ListView.builder(
@@ -89,7 +88,8 @@ class AddressPage extends ConsumerWidget {
                           child: Text(
                             '${address.recipientName} - ${address.phone}\n'
                             '${address.province}، ${address.city}\n'
-                            '${address.address}\nکدپستی: ${address.postalCode}',
+                            '${address.address}\nکدپستی: ${address.postalCode}\n'
+                            '${address.latitude != null && address.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
                           ),
                         ),
                         isThreeLine: true,
@@ -133,13 +133,9 @@ class AddressPage extends ConsumerWidget {
     if (confirmed != true) return;
     try {
       await ref.read(addressesProvider.notifier).delete(address.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در حذف آدرس: $e')));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در حذف آدرس: $e')));
     }
   }
 
@@ -171,6 +167,8 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   late bool _isDefault;
   String? _province;
   String? _city;
+  double? _latitude;
+  double? _longitude;
   bool _saving = false;
 
   List<String> get _cities => _province == null ? const [] : (_iranProvincesAndCities[_province] ?? const []);
@@ -181,10 +179,13 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     final item = widget.address;
     _title = TextEditingController(text: item?.title ?? '');
     _recipient = TextEditingController(text: item?.recipientName ?? '');
-    _phone = TextEditingController(text: item?.phone ?? '');
+    final phone = item?.phone ?? '';
+    _phone = TextEditingController(text: RegExp(r'^09\d{9}$').hasMatch(phone) ? phone : '09');
     _address = TextEditingController(text: item?.address ?? '');
     _postalCode = TextEditingController(text: item?.postalCode ?? '');
     _isDefault = item?.isDefault ?? false;
+    _latitude = item?.latitude;
+    _longitude = item?.longitude;
     _province = _iranProvincesAndCities.containsKey(item?.province) ? item?.province : null;
     final cities = _province == null ? const <String>[] : (_iranProvincesAndCities[_province] ?? const <String>[]);
     _city = cities.contains(item?.city) ? item?.city : null;
@@ -200,8 +201,28 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     super.dispose();
   }
 
+  Future<void> _pickLocation() async {
+    final location = await Navigator.of(context).push<({double latitude, double longitude})>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerPage(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+        ),
+      ),
+    );
+    if (location == null || !mounted) return;
+    setState(() {
+      _latitude = location.latitude;
+      _longitude = location.longitude;
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_latitude == null || _longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لطفاً موقعیت آدرس را روی نقشه انتخاب کنید.')));
+      return;
+    }
     setState(() => _saving = true);
     try {
       final title = _title.text.trim();
@@ -215,6 +236,8 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           city: _city!,
           address: _address.text.trim(),
           postalCode: _postalCode.text.trim(),
+          latitude: _latitude,
+          longitude: _longitude,
           isDefault: _isDefault,
         );
       } else {
@@ -227,14 +250,14 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           city: _city!,
           address: _address.text.trim(),
           postalCode: _postalCode.text.trim(),
+          latitude: _latitude,
+          longitude: _longitude,
           isDefault: _isDefault,
         );
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -248,11 +271,22 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   String? _phoneValidator(String? value) {
     final phone = value?.trim() ?? '';
     if (phone.isEmpty) return 'شماره تماس را وارد کنید';
-    if (!RegExp(r'^09\d{9}$').hasMatch(phone)) {
-      return 'شماره تماس باید ۱۱ رقمی و با 09 شروع شود';
-    }
+    if (!RegExp(r'^09\d{9}$').hasMatch(phone)) return 'شماره تماس باید ۱۱ رقمی و با 09 شروع شود';
     return null;
   }
+
+  TextInputFormatter get _iranPhoneFormatter => TextInputFormatter.withFunction((oldValue, newValue) {
+        var digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+        if (digits.startsWith('09')) {
+          digits = digits.substring(0, digits.length.clamp(0, 11));
+        } else {
+          digits = '09${digits.replaceFirst(RegExp(r'^0?9?'), '')}'.substring(0, ('09$digits').length.clamp(0, 11));
+        }
+        return TextEditingValue(
+          text: digits,
+          selection: TextSelection.collapsed(offset: digits.length),
+        );
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -266,10 +300,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  widget.address == null ? 'افزودن آدرس' : 'ویرایش آدرس',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                Text(widget.address == null ? 'افزودن آدرس' : 'ویرایش آدرس', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 _field(_title, 'عنوان آدرس'),
                 _field(_recipient, 'نام گیرنده'),
@@ -277,13 +308,27 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                   _phone,
                   'شماره تماس',
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(11)],
+                  inputFormatters: [_iranPhoneFormatter],
                   hintText: '09xxxxxxxxx',
                   validator: _phoneValidator,
                 ),
                 _provinceDropdown(),
                 const SizedBox(height: 12),
                 _cityDropdown(),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _saving ? null : _pickLocation,
+                  icon: Icon(_latitude == null ? Icons.location_on_outlined : Icons.location_on),
+                  label: Text(_latitude == null ? 'انتخاب موقعیت روی نقشه' : 'ویرایش موقعیت روی نقشه'),
+                ),
+                if (_latitude != null && _longitude != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'موقعیت: ${_latitude!.toStringAsFixed(6)}، ${_longitude!.toStringAsFixed(6)}',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 _field(_address, 'آدرس کامل', maxLines: 3),
                 _field(_postalCode, 'کد پستی', keyboardType: TextInputType.number),
@@ -298,9 +343,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                   onPressed: _saving ? null : _save,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: _saving
-                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('ذخیره آدرس'),
+                    child: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('ذخیره آدرس'),
                   ),
                 ),
               ],
@@ -315,18 +358,12 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     return DropdownButtonFormField<String>(
       initialValue: _province,
       decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
-      items: _iranProvincesAndCities.keys
-          .map((province) => DropdownMenuItem(value: province, child: Text(province)))
-          .toList(),
+      items: _iranProvincesAndCities.keys.map((province) => DropdownMenuItem(value: province, child: Text(province))).toList(),
       validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
-      onChanged: _saving
-          ? null
-          : (value) {
-              setState(() {
-                _province = value;
-                _city = null;
-              });
-            },
+      onChanged: _saving ? null : (value) => setState(() {
+            _province = value;
+            _city = null;
+          }),
     );
   }
 
