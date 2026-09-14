@@ -124,6 +124,7 @@ class _CartItemTile extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
+          textDirection: TextDirection.ltr,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
@@ -144,37 +145,47 @@ class _CartItemTile extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.product.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 6),
-                  Text(money(item.unitPrice)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: item.quantity >= item.product.stock
-                            ? null
-                            : () => notifier.updateItem(itemId: item.id, quantity: item.quantity + 1),
-                        icon: const Icon(Icons.add_circle_outline),
-                      ),
-                      Text('${item.quantity}'),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: item.quantity <= 1
-                            ? () => notifier.removeItem(item.id)
-                            : () => notifier.updateItem(itemId: item.id, quantity: item.quantity - 1),
-                        icon: Icon(item.quantity <= 1 ? Icons.delete_outline : Icons.remove_circle_outline),
-                      ),
-                    ],
-                  ),
-                ],
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.product.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 6),
+                    Text(money(item.unitPrice)),
+                    const SizedBox(height: 8),
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          onPressed: item.quantity >= item.product.stock
+                              ? null
+                              : () => notifier.updateItem(itemId: item.id, quantity: item.quantity + 1),
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                        Text('${item.quantity}'),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          onPressed: item.quantity <= 1
+                              ? () => notifier.removeItem(item.id)
+                              : () => notifier.updateItem(itemId: item.id, quantity: item.quantity - 1),
+                          icon: Icon(item.quantity <= 1 ? Icons.delete_outline : Icons.remove_circle_outline),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            Text(money(item.totalPrice), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                money(item.totalPrice),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),
