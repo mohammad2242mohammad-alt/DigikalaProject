@@ -62,35 +62,49 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             final hasDiscount = product.discountPrice != null &&
                 product.discountPrice! < product.price;
             final discountPercent = hasDiscount
-                ? ((product.price - product.discountPrice!) / product.price * 100).round()
+                ? ((product.price - product.discountPrice!) /
+                        product.price *
+                        100)
+                    .round()
                 : 0;
             final canBuy = product.isActive && product.stock > 0;
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
-                if (product.image != null && product.image!.isNotEmpty)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      product.image!,
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
                       height: 280,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const SizedBox(
-                        height: 280,
-                        child: Icon(Icons.image_not_supported_outlined, size: 72),
-                      ),
+                      child: product.image != null && product.image!.isNotEmpty
+                          ? Image.network(
+                              product.image!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Center(
+                                child: Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 72,
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(Icons.image_outlined, size: 72),
+                            ),
                     ),
-                  )
-                else
-                  const SizedBox(
-                    height: 280,
-                    child: Icon(Icons.image_outlined, size: 72),
                   ),
+                ),
                 const SizedBox(height: 20),
                 Text(
                   product.name,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -99,58 +113,104 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     const SizedBox(width: 4),
                     Text('${product.rating}'),
                     const SizedBox(width: 16),
-                    Text('بازدید: ${product.views}'),
+                    const Icon(Icons.visibility_outlined, size: 19),
+                    const SizedBox(width: 4),
+                    Text('${product.views} بازدید'),
                   ],
                 ),
                 const SizedBox(height: 20),
-                if (hasDiscount) ...[
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '$discountPercent٪ تخفیف',
+                Card(
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (hasDiscount) ...[
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '$discountPercent٪ تخفیف',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                '${PriceFormatter.format(product.price)} تومان',
+                                style: const TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        Text(
+                          '${PriceFormatter.format(product.effectivePrice)} تومان',
                           style: const TextStyle(
-                            color: Colors.white,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        '${PriceFormatter.format(product.price)} تومان',
-                        style: const TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: Colors.grey,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              product.stock > 0
+                                  ? Icons.check_circle_outline
+                                  : Icons.cancel_outlined,
+                              size: 20,
+                              color: product.stock > 0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              product.stock > 0
+                                  ? 'موجودی: ${product.stock} عدد'
+                                  : 'ناموجود',
+                              style: TextStyle(
+                                color: product.stock > 0
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                ],
-                Text(
-                  '${PriceFormatter.format(product.effectivePrice)} تومان',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  product.stock > 0 ? 'موجودی: ${product.stock}' : 'ناموجود',
-                  style: TextStyle(
-                    color: product.stock > 0 ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w600,
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
                 if (product.description.isNotEmpty) ...[
-                  const Text('توضیحات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'توضیحات محصول',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(product.description, style: const TextStyle(fontSize: 16, height: 1.7)),
-                  const SizedBox(height: 24),
+                  Text(
+                    product.description,
+                    style: const TextStyle(fontSize: 16, height: 1.8),
+                  ),
                 ],
+                const SizedBox(height: 24),
                 if (canBuy)
                   Row(
                     children: [
@@ -160,6 +220,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
+                          textDirection: TextDirection.ltr,
                           children: [
                             IconButton(
                               onPressed: _quantity < product.stock
@@ -167,7 +228,12 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                                   : null,
                               icon: const Icon(Icons.add),
                             ),
-                            Text('$_quantity', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              '$_quantity',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             IconButton(
                               onPressed: _quantity > 1
                                   ? () => setState(() => _quantity--)
@@ -188,9 +254,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     ],
                   )
                 else
-                  const SizedBox(
-                    height: 48,
-                    child: Center(child: Text('این محصول در حال حاضر قابل خرید نیست')),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text('این محصول در حال حاضر قابل خرید نیست'),
+                    ),
                   ),
               ],
             );
