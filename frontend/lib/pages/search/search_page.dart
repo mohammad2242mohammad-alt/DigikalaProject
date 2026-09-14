@@ -33,8 +33,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   void _search() => setState(() {});
 
   Future<void> _openFilters() async {
-    final minController = TextEditingController(text: _minPrice?.toStringAsFixed(0) ?? '');
-    final maxController = TextEditingController(text: _maxPrice?.toStringAsFixed(0) ?? '');
+    final minController = TextEditingController(
+      text: _minPrice?.toStringAsFixed(0) ?? '',
+    );
+    final maxController = TextEditingController(
+      text: _maxPrice?.toStringAsFixed(0) ?? '',
+    );
     var selectedSort = _sort;
 
     await showModalBottomSheet<void>(
@@ -44,28 +48,45 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         textDirection: TextDirection.rtl,
         child: StatefulBuilder(
           builder: (context, setSheetState) => Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              20,
+              20,
+              MediaQuery.viewInsetsOf(context).bottom + 20,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('فیلتر و مرتب‌سازی', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text(
+                  'فیلتر و مرتب‌سازی',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: minController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'حداقل قیمت', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                    labelText: 'حداقل قیمت',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: maxController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'حداکثر قیمت', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                    labelText: 'حداکثر قیمت',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedSort,
-                  decoration: const InputDecoration(labelText: 'مرتب‌سازی', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                    labelText: 'مرتب‌سازی',
+                    border: OutlineInputBorder(),
+                  ),
                   items: const [
                     DropdownMenuItem(value: 'latest', child: Text('جدیدترین')),
                     DropdownMenuItem(value: 'price_asc', child: Text('ارزان‌ترین')),
@@ -74,7 +95,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     DropdownMenuItem(value: 'popular', child: Text('محبوب‌ترین')),
                   ],
                   onChanged: (value) {
-                    if (value != null) setSheetState(() => selectedSort = value);
+                    if (value != null) {
+                      setSheetState(() => selectedSort = value);
+                    }
                   },
                 ),
                 const SizedBox(height: 16),
@@ -83,7 +106,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     final min = double.tryParse(minController.text.trim());
                     final max = double.tryParse(maxController.text.trim());
                     if (min != null && max != null && max < min) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حداکثر قیمت باید بیشتر یا مساوی حداقل قیمت باشد.')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'حداکثر قیمت باید بیشتر یا مساوی حداقل قیمت باشد.',
+                          ),
+                        ),
+                      );
                       return;
                     }
                     Navigator.pop(context);
@@ -106,6 +135,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     maxController.dispose();
   }
 
+  void _clearFilters() {
+    setState(() {
+      _minPrice = null;
+      _maxPrice = null;
+      _sort = 'latest';
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -115,6 +152,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productSearchProvider(_query));
+    final hasFilters = _minPrice != null || _maxPrice != null || _sort != 'latest';
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title ?? 'جستجوی محصولات')),
@@ -157,11 +195,37 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ],
               ),
             ),
+            if (hasFilters)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      if (_minPrice != null)
+                        Chip(label: Text('از ${PriceFormatter.format(_minPrice!)} تومان')),
+                      if (_maxPrice != null)
+                        Chip(label: Text('تا ${PriceFormatter.format(_maxPrice!)} تومان')),
+                      if (_sort != 'latest')
+                        Chip(label: Text(_sortLabel(_sort))),
+                      ActionChip(
+                        label: const Text('حذف فیلترها'),
+                        onPressed: _clearFilters,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Expanded(
               child: productsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(
-                  child: Text('خطا در دریافت محصولات:\n$error', textAlign: TextAlign.center),
+                  child: Text(
+                    'خطا در دریافت محصولات:\n$error',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 data: (products) {
                   if (products.isEmpty) {
@@ -169,7 +233,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   }
                   return RefreshIndicator(
                     onRefresh: () async {
-                      ref.invalidate(productSearchProvider(_query));
+                      await ref.refresh(productSearchProvider(_query).future);
                     },
                     child: ListView.builder(
                       padding: const EdgeInsets.all(12),
@@ -178,22 +242,70 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         final product = products[index];
                         return Card(
                           margin: const EdgeInsets.only(bottom: 10),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(10),
-                            leading: product.image != null && product.image!.isNotEmpty
-                                ? Image.network(
-                                    product.image!,
-                                    width: 70,
-                                    height: 70,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported, size: 42),
-                                  )
-                                : const Icon(Icons.image_outlined, size: 42),
-                            title: Text(product.name),
-                            subtitle: Text(product.stock > 0 ? '${PriceFormatter.format(product.effectivePrice)} تومان' : 'ناموجود'),
-                            trailing: Text('⭐ ${product.rating}'),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
                             onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailPage(product: product),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                textDirection: TextDirection.ltr,
+                                children: [
+                                  SizedBox(
+                                    width: 80,
+                                    height: 80,
+                                    child: product.image != null && product.image!.isNotEmpty
+                                        ? Image.network(
+                                            product.image!,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (_, __, ___) => const Icon(
+                                              Icons.image_not_supported,
+                                              size: 42,
+                                            ),
+                                          )
+                                        : const Icon(Icons.image_outlined, size: 42),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Directionality(
+                                      textDirection: TextDirection.rtl,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            textDirection: TextDirection.rtl,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  product.stock > 0
+                                                      ? '${PriceFormatter.format(product.effectivePrice)} تومان'
+                                                      : 'ناموجود',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              Text('⭐ ${product.rating}'),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -207,5 +319,20 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         ),
       ),
     );
+  }
+
+  String _sortLabel(String sort) {
+    switch (sort) {
+      case 'price_asc':
+        return 'ارزان‌ترین';
+      case 'price_desc':
+        return 'گران‌ترین';
+      case 'rating':
+        return 'بالاترین امتیاز';
+      case 'popular':
+        return 'محبوب‌ترین';
+      default:
+        return 'جدیدترین';
+    }
   }
 }
