@@ -33,6 +33,22 @@ class PaymentController extends Controller
         }
 
         $payment = DB::transaction(function () use ($payment, $order) {
+            $order->load('items');
+
+            foreach ($order->items as $item) {
+                $updated = DB::table('products')
+                    ->where('id', $item->product_id)
+                    ->where('is_active', true)
+                    ->where('stock', '>=', $item->quantity)
+                    ->decrement('stock', $item->quantity);
+
+                if ($updated !== 1) {
+                    throw ValidationException::withMessages([
+                        'payment' => ["موجودی محصول «{$item->product_name}» برای پرداخت کافی نیست."],
+                    ]);
+                }
+            }
+
             $payment->update([
                 'status' => 'paid',
                 'transaction_id' => 'MOCK-' . Str::upper(Str::random(16)),
