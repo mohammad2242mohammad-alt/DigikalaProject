@@ -13,3 +13,7 @@ final productRepositoryProvider = Provider<ProductRepository>(
 final productsProvider = FutureProvider<List<Product>>((ref) {
   return ref.watch(productRepositoryProvider).getProducts();
 });
+
+final productDetailProvider = FutureProvider.family<Product, int>((ref, id) {
+  return ref.watch(productRepositoryProvider).getProduct(id);
+});
