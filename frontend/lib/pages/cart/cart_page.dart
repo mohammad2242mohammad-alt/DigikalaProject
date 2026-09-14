@@ -15,24 +15,11 @@ class CartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartAsync = ref.watch(cartProvider);
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text('سبد خرید'),
-          actions: [
-            Directionality(
-              textDirection: TextDirection.ltr,
-              child: IconButton(
-                tooltip: 'بازگشت',
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-            ),
-          ],
-        ),
-        body: cartAsync.when(
+    return Scaffold(
+      appBar: AppBar(title: const Text('سبد خرید')),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: cartAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Padding(
