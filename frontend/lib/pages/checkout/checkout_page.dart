@@ -55,24 +55,11 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   Widget build(BuildContext context) {
     final addresses = ref.watch(addressesProvider);
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text('تکمیل سفارش'),
-          actions: [
-            Directionality(
-              textDirection: TextDirection.ltr,
-              child: IconButton(
-                tooltip: 'بازگشت',
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-            ),
-          ],
-        ),
-        body: addresses.when(
+    return Scaffold(
+      appBar: AppBar(title: const Text('تکمیل سفارش')),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: addresses.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text('خطا: $error')),
           data: (items) {
