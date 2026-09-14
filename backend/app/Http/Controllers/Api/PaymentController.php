@@ -24,15 +24,16 @@ class PaymentController extends Controller
             ]);
         }
 
-        if ($payment->status === 'paid') {
-            return response()->json([
-                'success' => true,
-                'message' => 'Order is already paid.',
-                'data' => $payment,
-            ]);
-        }
-
         $payment = DB::transaction(function () use ($payment, $order) {
+            $lockedPayment = $order->payments()
+                ->whereKey($payment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedPayment->status === 'paid') {
+                return $lockedPayment;
+            }
+
             $order->load('items');
 
             foreach ($order->items as $item) {
@@ -49,7 +50,7 @@ class PaymentController extends Controller
                 }
             }
 
-            $payment->update([
+            $lockedPayment->update([
                 'status' => 'paid',
                 'transaction_id' => 'MOCK-' . Str::upper(Str::random(16)),
                 'paid_at' => now(),
@@ -57,12 +58,14 @@ class PaymentController extends Controller
 
             $order->update(['status' => 'paid']);
 
-            return $payment->fresh();
+            return $lockedPayment->fresh();
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Mock payment completed successfully.',
+            'message' => $payment->status === 'paid'
+                ? 'Mock payment completed successfully.'
+                : 'Order is already paid.',
             'data' => $payment,
         ]);
     }
