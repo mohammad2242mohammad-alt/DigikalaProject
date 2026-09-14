@@ -42,33 +42,62 @@ class OrdersPage extends ConsumerWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerStatefulWidget {
   const _OrderCard({required this.order, required this.money});
 
   final OrderModel order;
   final String Function(double) money;
 
   @override
+  ConsumerState<_OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends ConsumerState<_OrderCard> {
+  bool _paying = false;
+
+  Future<void> _pay() async {
+    setState(() => _paying = true);
+    try {
+      final payment = await ref.read(orderRepositoryProvider).pay(widget.order.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('پرداخت موفق بود: ${payment.status}')),
+      );
+      ref.invalidate(ordersProvider);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _paying = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final order = widget.order;
+    final canPay = order.status == 'pending';
+
     return Card(
       child: ExpansionTile(
         title: Text('سفارش #${order.id}'),
-        subtitle: Text('${order.status} • ${money(order.total)}'),
+        subtitle: Text('${order.status} • ${widget.money(order.total)}'),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         children: [
           ...order.items.map(
             (item) => ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(item.productName),
-              subtitle: Text('${item.quantity} عدد × ${money(item.unitPrice)}'),
-              trailing: Text(money(item.totalPrice)),
+              subtitle: Text('${item.quantity} عدد × ${widget.money(item.unitPrice)}'),
+              trailing: Text(widget.money(item.totalPrice)),
             ),
           ),
           const Divider(),
-          _Row(label: 'مبلغ کالاها', value: money(order.subtotal)),
-          _Row(label: 'هزینه ارسال', value: money(order.shippingPrice)),
-          _Row(label: 'تخفیف', value: money(order.discountAmount)),
-          _Row(label: 'مبلغ نهایی', value: money(order.total)),
+          _Row(label: 'مبلغ کالاها', value: widget.money(order.subtotal)),
+          _Row(label: 'هزینه ارسال', value: widget.money(order.shippingPrice)),
+          _Row(label: 'تخفیف', value: widget.money(order.discountAmount)),
+          _Row(label: 'مبلغ نهایی', value: widget.money(order.total)),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
@@ -77,6 +106,23 @@ class _OrderCard extends StatelessWidget {
               textAlign: TextAlign.right,
             ),
           ),
+          if (canPay) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _paying ? null : _pay,
+                icon: _paying
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.payment),
+                label: Text(_paying ? 'در حال پرداخت...' : 'پرداخت سفارش'),
+              ),
+            ),
+          ],
         ],
       ),
     );
