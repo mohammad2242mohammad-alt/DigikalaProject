@@ -4,15 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/order_model.dart';
 import '../../providers/admin_provider.dart';
 
-class AdminOrdersPage extends ConsumerStatefulWidget {
+class AdminOrdersPage extends ConsumerWidget {
   const AdminOrdersPage({super.key});
-
-  @override
-  ConsumerState<AdminOrdersPage> createState() => _AdminOrdersPageState();
-}
-
-class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
-  late Future<List<OrderModel>> _future;
 
   static const statuses = <String>[
     'pending',
@@ -23,18 +16,11 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
     'cancelled',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(adminRepositoryProvider).getOrders();
+  Future<void> _refresh(WidgetRef ref) async {
+    await ref.read(adminOrdersProvider.notifier).refresh();
   }
 
-  Future<void> _refresh() async {
-    setState(() => _future = ref.read(adminRepositoryProvider).getOrders());
-    await _future;
-  }
-
-  Future<void> _changeStatus(OrderModel order) async {
+  Future<void> _changeStatus(BuildContext context, WidgetRef ref, OrderModel order) async {
     final selected = await showDialog<String>(
       context: context,
       builder: (_) => SimpleDialog(
@@ -55,12 +41,11 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
             .toList(),
       ),
     );
-    if (selected == null || selected == order.status || !mounted) return;
+    if (selected == null || selected == order.status || !context.mounted) return;
     try {
-      await ref.read(adminRepositoryProvider).updateOrderStatus(order.id, selected);
-      await _refresh();
+      await ref.read(adminOrdersProvider.notifier).updateStatus(order.id, selected);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     }
   }
 
@@ -77,22 +62,19 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersAsync = ref.watch(adminOrdersProvider);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: const Text('مدیریت سفارش‌ها')),
-        body: FutureBuilder<List<OrderModel>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) return Center(child: Text('خطا: ${snapshot.error}'));
-            final orders = snapshot.data ?? const <OrderModel>[];
+        body: ordersAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('خطا: $error')),
+          data: (orders) {
             if (orders.isEmpty) return const Center(child: Text('سفارشی ثبت نشده است.'));
             return RefreshIndicator(
-              onRefresh: _refresh,
+              onRefresh: () => _refresh(ref),
               child: ListView.builder(
                 itemCount: orders.length,
                 itemBuilder: (_, index) {
@@ -105,7 +87,7 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                       trailing: IconButton(
                         tooltip: 'تغییر وضعیت',
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _changeStatus(order),
+                        onPressed: () => _changeStatus(context, ref, order),
                       ),
                       children: [
                         ...order.items.map(
@@ -126,7 +108,7 @@ class _AdminOrdersPageState extends ConsumerState<AdminOrdersPage> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: FilledButton.icon(
-                              onPressed: () => _changeStatus(order),
+                              onPressed: () => _changeStatus(context, ref, order),
                               icon: const Icon(Icons.sync),
                               label: Text('تغییر وضعیت: ${_statusLabel(order.status)}'),
                             ),
