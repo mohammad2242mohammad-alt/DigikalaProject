@@ -27,4 +27,9 @@ class ProductRepository {
     final decoded = await _apiClient.get('/products', queryParameters: query);
     return ApiResponse.dataList(decoded).map(Product.fromJson).toList();
   }
+
+  Future<Product> getProduct(int id) async {
+    final response = await _apiClient.get('/products/$id');
+    return Product.fromJson(ApiResponse.dataMap(response));
+  }
 }
