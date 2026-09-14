@@ -16,22 +16,7 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
-  late Future<Product> _productFuture;
   int _quantity = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _productFuture = _loadProduct();
-  }
-
-  Future<Product> _loadProduct() async {
-    final response = await ref.read(apiClientProvider).get('/products/${widget.product.id}');
-    if (response is! Map<String, dynamic> || response['data'] is! Map<String, dynamic>) {
-      throw const FormatException('Invalid product response');
-    }
-    return Product.fromJson(response['data'] as Map<String, dynamic>);
-  }
 
   Future<void> _addToCart(Product product) async {
     if (product.stock <= 0) return;
@@ -56,27 +41,22 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final productAsync = ref.watch(productDetailProvider(widget.product.id));
+
     return Scaffold(
       appBar: AppBar(title: const Text('جزئیات محصول')),
-      body: FutureBuilder<Product>(
-        future: _productFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || !snapshot.hasData) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'خطا در دریافت محصول:\n${snapshot.error ?? 'اطلاعاتی دریافت نشد'}',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-
-          final product = snapshot.data!;
+      body: productAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'خطا در دریافت محصول:\n$error',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        data: (product) {
           final hasDiscount = product.discountPrice != null &&
               product.discountPrice! < product.price;
           final discountPercent = hasDiscount
@@ -94,7 +74,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     product.image!,
                     height: 280,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const SizedBox(
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(
                       height: 280,
                       child: Icon(Icons.image_not_supported_outlined, size: 72),
                     ),
