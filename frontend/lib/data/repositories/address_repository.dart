@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/address_model.dart';
 
 class AddressRepository {
@@ -8,11 +9,7 @@ class AddressRepository {
 
   Future<List<AddressModel>> getAddresses() async {
     final response = await _apiClient.get('/addresses');
-    if (response is! Map<String, dynamic> || response['data'] is! List) {
-      throw const FormatException('Invalid addresses response');
-    }
-    return (response['data'] as List)
-        .whereType<Map<String, dynamic>>()
+    return ApiResponse.dataList(response)
         .map(AddressModel.fromJson)
         .toList();
   }
@@ -37,7 +34,7 @@ class AddressRepository {
       'postal_code': postalCode,
       'is_default': isDefault,
     });
-    return AddressModel.fromJson(response['data'] as Map<String, dynamic>);
+    return AddressModel.fromJson(ApiResponse.dataMap(response));
   }
 
   Future<AddressModel> update({
@@ -61,7 +58,7 @@ class AddressRepository {
       'postal_code': postalCode,
       'is_default': isDefault,
     });
-    return AddressModel.fromJson(response['data'] as Map<String, dynamic>);
+    return AddressModel.fromJson(ApiResponse.dataMap(response));
   }
 
   Future<void> delete(int id) async {
