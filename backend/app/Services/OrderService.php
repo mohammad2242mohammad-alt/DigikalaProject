@@ -81,18 +81,6 @@ class OrderService
             ]);
 
             foreach ($items as $item) {
-                $updated = DB::table('products')
-                    ->where('id', $item['product']->id)
-                    ->where('is_active', true)
-                    ->where('stock', '>=', $item['quantity'])
-                    ->decrement('stock', $item['quantity']);
-
-                if ($updated !== 1) {
-                    throw ValidationException::withMessages([
-                        'cart' => ["موجودی محصول «{$item['product']->name}» کافی نیست."],
-                    ]);
-                }
-
                 $order->items()->create([
                     'product_id' => $item['product']->id,
                     'product_name' => $item['product']->name,
