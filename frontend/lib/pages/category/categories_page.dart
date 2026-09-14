@@ -12,11 +12,11 @@ class CategoriesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoriesProvider);
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
-        body: categoriesAsync.when(
+    return Scaffold(
+      appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: categoriesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Padding(
