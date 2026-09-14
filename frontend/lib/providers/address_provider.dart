@@ -40,7 +40,7 @@ class AddressNotifier extends AsyncNotifier<List<AddressModel>> {
         ));
   }
 
-  Future<void> update({
+  Future<void> saveAddress({
     required int id,
     String? title,
     required String recipientName,
