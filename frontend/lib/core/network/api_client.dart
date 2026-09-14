@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -6,6 +7,8 @@ import 'api_exception.dart';
 
 class ApiClient {
   ApiClient({String? baseUrl}) : baseUrl = baseUrl ?? 'http://127.0.0.1:8000/api';
+
+  static const _requestTimeout = Duration(seconds: 15);
 
   final String baseUrl;
   String? token;
@@ -35,7 +38,7 @@ class ApiClient {
 
   Future<dynamic> _send(Future<http.Response> Function() request) async {
     try {
-      final response = await request();
+      final response = await request().timeout(_requestTimeout);
       dynamic decoded;
       if (response.body.isNotEmpty) decoded = jsonDecode(response.body);
 
@@ -54,6 +57,8 @@ class ApiClient {
         );
       }
       return decoded;
+    } on TimeoutException {
+      throw ApiException('زمان پاسخ‌گویی سرور تمام شد.');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('ارتباط با سرور برقرار نشد.');
