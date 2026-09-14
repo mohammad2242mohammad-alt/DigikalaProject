@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/user_model.dart';
 
 class AuthSession {
@@ -18,13 +19,7 @@ class AuthRepository {
       'email': email,
       'password': password,
     });
-    final data = response['data'] as Map<String, dynamic>;
-    final session = AuthSession(
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      token: data['token'].toString(),
-    );
-    _apiClient.token = session.token;
-    return session;
+    return _parseSession(response);
   }
 
   Future<AuthSession> register({
@@ -39,22 +34,33 @@ class AuthRepository {
       'password': password,
       'password_confirmation': passwordConfirmation,
     });
-    final data = response['data'] as Map<String, dynamic>;
-    final session = AuthSession(
-      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
-      token: data['token'].toString(),
-    );
-    _apiClient.token = session.token;
-    return session;
+    return _parseSession(response);
   }
 
   Future<UserModel> me() async {
     final response = await _apiClient.get('/auth/me');
-    return UserModel.fromJson(response['data'] as Map<String, dynamic>);
+    return UserModel.fromJson(ApiResponse.dataMap(response));
   }
 
   Future<void> logout() async {
     await _apiClient.post('/auth/logout');
     _apiClient.token = null;
+  }
+
+  AuthSession _parseSession(dynamic response) {
+    final data = ApiResponse.dataMap(response);
+    final user = data['user'];
+    final token = data['token'];
+
+    if (user is! Map<String, dynamic> || token is! String || token.isEmpty) {
+      throw const FormatException('Invalid auth response');
+    }
+
+    final session = AuthSession(
+      user: UserModel.fromJson(user),
+      token: token,
+    );
+    _apiClient.token = session.token;
+    return session;
   }
 }
