@@ -10,15 +10,24 @@
 
     For more details:
     * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+
+  <!-- Keep the browser/page scrollbar on the right.
+       Flutter pages control their own RTL text direction. -->
+  <style>
+    html,
+    body {
+      direction: ltr;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -35,8 +44,8 @@
 <body>
   <!--
     You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+    This is useful to provide a custom configuration for the Flutter loader
+    or to give the user feedback during initialization.
 
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
