@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../models/user_model.dart';
-import 'product_provider.dart';
+import 'api_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepository(ref.watch(apiClientProvider)),
