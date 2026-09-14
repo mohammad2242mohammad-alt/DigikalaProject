@@ -4,36 +4,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/category_model.dart';
 import '../../providers/admin_provider.dart';
 
-class AdminCategoriesPage extends ConsumerStatefulWidget {
+class AdminCategoriesPage extends ConsumerWidget {
   const AdminCategoriesPage({super.key});
 
-  @override
-  ConsumerState<AdminCategoriesPage> createState() => _AdminCategoriesPageState();
-}
-
-class _AdminCategoriesPageState extends ConsumerState<AdminCategoriesPage> {
-  late Future<List<CategoryModel>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(adminRepositoryProvider).getCategories();
+  Future<void> _refresh(WidgetRef ref) async {
+    await ref.read(adminCategoriesProvider.notifier).refresh();
   }
 
-  Future<void> _refresh() async {
-    setState(() => _future = ref.read(adminRepositoryProvider).getCategories());
-    await _future;
-  }
-
-  Future<void> _edit([CategoryModel? category]) async {
+  Future<void> _edit(BuildContext context, WidgetRef ref, [CategoryModel? category]) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => _CategoryDialog(category: category),
     );
-    if (result == true) await _refresh();
+    if (result == true && context.mounted) {
+      await _refresh(ref);
+    }
   }
 
-  Future<void> _delete(CategoryModel category) async {
+  Future<void> _delete(BuildContext context, WidgetRef ref, CategoryModel category) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -45,37 +33,35 @@ class _AdminCategoriesPageState extends ConsumerState<AdminCategoriesPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !context.mounted) return;
     try {
-      await ref.read(adminRepositoryProvider).deleteCategory(category.id);
-      await _refresh();
+      await ref.read(adminCategoriesProvider.notifier).delete(category.id);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesAsync = ref.watch(adminCategoriesProvider);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: const Text('مدیریت دسته‌بندی‌ها')),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _edit(),
+          onPressed: () => _edit(context, ref),
           icon: const Icon(Icons.add),
           label: const Text('دسته جدید'),
         ),
-        body: FutureBuilder<List<CategoryModel>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) return Center(child: Text('خطا: ${snapshot.error}'));
-            final categories = snapshot.data ?? const <CategoryModel>[];
+        body: categoriesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('خطا: $error')),
+          data: (categories) {
             if (categories.isEmpty) return const Center(child: Text('دسته‌بندی‌ای ثبت نشده است.'));
             return RefreshIndicator(
-              onRefresh: _refresh,
+              onRefresh: () => _refresh(ref),
               child: ListView.builder(
                 itemCount: categories.length,
                 itemBuilder: (_, index) {
@@ -88,8 +74,8 @@ class _AdminCategoriesPageState extends ConsumerState<AdminCategoriesPage> {
                       subtitle: Text('${category.slug} | ${category.parentId == null ? 'اصلی' : 'زیرمجموعه'}'),
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) {
-                          if (value == 'edit') _edit(category);
-                          if (value == 'delete') _delete(category);
+                          if (value == 'edit') _edit(context, ref, category);
+                          if (value == 'delete') _delete(context, ref, category);
                         },
                         itemBuilder: (_) => const [
                           PopupMenuItem(value: 'edit', child: Text('ویرایش')),
@@ -138,19 +124,23 @@ class _CategoryDialogState extends ConsumerState<_CategoryDialog> {
     _description = TextEditingController(text: c?.description ?? '');
     _sortOrder = TextEditingController(text: '0');
     _parentId = c?.parentId;
-    _loadCategories();
+    Future.microtask(_loadCategories);
   }
 
   Future<void> _loadCategories() async {
     try {
-      final categories = await ref.read(adminRepositoryProvider).getCategories();
-      if (mounted) setState(() => _categories = categories.where((c) => c.id != widget.category?.id).toList());
+      final categories = await ref.read(adminCategoriesProvider.future);
+      if (mounted) {
+        setState(() => _categories = categories.where((c) => c.id != widget.category?.id).toList());
+      }
     } catch (_) {}
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _slug, _image, _description, _sortOrder]) c.dispose();
+    for (final c in [_name, _slug, _image, _description, _sortOrder]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -167,11 +157,11 @@ class _CategoryDialogState extends ConsumerState<_CategoryDialog> {
         'is_active': _active,
         'sort_order': int.tryParse(_sortOrder.text.trim()) ?? 0,
       };
-      final repo = ref.read(adminRepositoryProvider);
+      final notifier = ref.read(adminCategoriesProvider.notifier);
       if (widget.category == null) {
-        await repo.createCategory(data);
+        await notifier.create(data);
       } else {
-        await repo.updateCategory(widget.category!.id, data);
+        await notifier.update(widget.category!.id, data);
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
