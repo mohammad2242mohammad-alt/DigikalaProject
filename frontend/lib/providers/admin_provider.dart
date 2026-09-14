@@ -30,7 +30,7 @@ class AdminProductsNotifier extends AsyncNotifier<List<Product>> {
     await _run(() => _repository.createProduct(data));
   }
 
-  Future<void> update(int id, Map<String, dynamic> data) async {
+  Future<void> saveProduct(int id, Map<String, dynamic> data) async {
     await _run(() => _repository.updateProduct(id, data));
   }
 
@@ -70,7 +70,7 @@ class AdminCategoriesNotifier extends AsyncNotifier<List<CategoryModel>> {
     await _run(() => _repository.createCategory(data));
   }
 
-  Future<void> update(int id, Map<String, dynamic> data) async {
+  Future<void> saveCategory(int id, Map<String, dynamic> data) async {
     await _run(() => _repository.updateCategory(id, data));
   }
 
