@@ -131,8 +131,7 @@ class AddressPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     try {
-      await ref.read(addressRepositoryProvider).delete(address.id);
-      ref.invalidate(addressesProvider);
+      await ref.read(addressesProvider.notifier).delete(address.id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
       }
@@ -204,10 +203,10 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      final repository = ref.read(addressRepositoryProvider);
       final title = _title.text.trim();
+      final notifier = ref.read(addressesProvider.notifier);
       if (widget.address == null) {
-        await repository.create(
+        await notifier.create(
           title: title,
           recipientName: _recipient.text.trim(),
           phone: _phone.text.trim(),
@@ -218,7 +217,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           isDefault: _isDefault,
         );
       } else {
-        await repository.update(
+        await notifier.saveAddress(
           id: widget.address!.id,
           title: title,
           recipientName: _recipient.text.trim(),
@@ -230,7 +229,6 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           isDefault: _isDefault,
         );
       }
-      ref.invalidate(addressesProvider);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
