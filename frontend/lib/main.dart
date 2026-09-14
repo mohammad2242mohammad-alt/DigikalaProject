@@ -19,9 +19,15 @@ class RightScrollbarBehavior extends MaterialScrollBehavior {
     ScrollableDetails details,
   ) {
     if (details.direction == Axis.vertical) {
-      return Scrollbar(
-        scrollbarOrientation: ScrollbarOrientation.right,
-        child: child,
+      // The scrollbar itself must use LTR so its physical side is RIGHT.
+      // Keep the scrollable child outside this Directionality so Persian
+      // content remains RTL and back arrows/layouts are not affected.
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Scrollbar(
+          scrollbarOrientation: ScrollbarOrientation.right,
+          child: child,
+        ),
       );
     }
 
