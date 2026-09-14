@@ -66,11 +66,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                       point: _selectedLocation!,
                       width: 50,
                       height: 50,
-                      child: const Icon(
-                        Icons.location_pin,
-                        size: 50,
-                        color: Colors.red,
-                      ),
+                      child: const Icon(Icons.location_pin, size: 50, color: Colors.red),
                     ),
                   ],
                 ),
@@ -99,7 +95,10 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             child: FilledButton.icon(
               onPressed: _selectedLocation == null
                   ? null
-                  : () => Navigator.of(context).pop(_selectedLocation),
+                  : () => Navigator.of(context).pop((
+                        latitude: _selectedLocation!.latitude,
+                        longitude: _selectedLocation!.longitude,
+                      )),
               icon: const Icon(Icons.check),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
