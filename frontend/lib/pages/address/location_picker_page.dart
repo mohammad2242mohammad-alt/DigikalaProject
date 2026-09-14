@@ -39,7 +39,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         title: const Text('انتخاب موقعیت روی نقشه'),
         actions: [
           IconButton(
-            tooltip: 'بازگشت به مرکز ایران',
+            tooltip: 'مرکز ایران',
             onPressed: () => _mapController.move(_defaultCenter, 5.2),
             icon: const Icon(Icons.center_focus_strong),
           ),
@@ -52,12 +52,16 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             options: MapOptions(
               initialCenter: center,
               initialZoom: _selectedLocation == null ? 5.2 : 15,
+              minZoom: 3,
+              maxZoom: 19,
               onTap: (_, point) => _selectLocation(point),
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                subdomains: const ['a', 'b', 'c'],
                 userAgentPackageName: 'com.example.frontend',
+                maxZoom: 19,
               ),
               if (_selectedLocation != null)
                 MarkerLayer(
@@ -81,8 +85,8 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   _selectedLocation == null
-                      ? 'روی نقشه روی محل دقیق تحویل ضربه بزنید.'
-                      : 'موقعیت انتخاب شد. اگر لازم است نقطه را جابه‌جا کنید.',
+                      ? 'روی نقشه محل دقیق تحویل را انتخاب کنید.'
+                      : 'موقعیت انتخاب شد؛ در صورت نیاز نقطه را جابه‌جا کنید.',
                   textAlign: TextAlign.center,
                 ),
               ),
