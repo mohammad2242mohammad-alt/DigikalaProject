@@ -33,11 +33,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
     setState(() => _submitting = true);
     try {
-      await ref.read(orderRepositoryProvider).checkout(
-            addressId: address.id,
-          );
+      await ref.read(ordersProvider.notifier).checkout(addressId: address.id);
       if (!mounted) return;
-      ref.invalidate(ordersProvider);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OrdersPage()),
       );
