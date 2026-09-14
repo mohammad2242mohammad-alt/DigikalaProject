@@ -37,10 +37,18 @@ class ApiClient {
       if (response.body.isNotEmpty) decoded = jsonDecode(response.body);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        final message = decoded is Map<String, dynamic>
-            ? decoded['message']?.toString() ?? 'خطا در ارتباط با سرور'
-            : 'خطا در ارتباط با سرور';
-        throw ApiException(message, statusCode: response.statusCode);
+        final payload = decoded is Map<String, dynamic> ? decoded : null;
+        final message = payload?['message']?.toString() ?? 'خطا در ارتباط با سرور';
+        final rawErrors = payload?['errors'];
+        final errors = rawErrors is Map
+            ? Map<String, dynamic>.from(rawErrors)
+            : null;
+
+        throw ApiException(
+          message,
+          statusCode: response.statusCode,
+          errors: errors,
+        );
       }
       return decoded;
     } catch (e) {
