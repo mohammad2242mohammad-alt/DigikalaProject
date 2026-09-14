@@ -15,74 +15,77 @@ class CartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartAsync = ref.watch(cartProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('سبد خرید')),
-      body: cartAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('دریافت سبد خرید ناموفق بود'),
-                const SizedBox(height: 8),
-                Text('$error', textAlign: TextAlign.center),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => ref.read(cartProvider.notifier).refreshCart(),
-                  child: const Text('تلاش دوباره'),
-                ),
-              ],
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('سبد خرید')),
+        body: cartAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('دریافت سبد خرید ناموفق بود'),
+                  const SizedBox(height: 8),
+                  Text('$error', textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => ref.read(cartProvider.notifier).refreshCart(),
+                    child: const Text('تلاش دوباره'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        data: (cart) {
-          if (cart.items.isEmpty) {
-            return const Center(
-              child: Text('سبد خرید خالی است', style: TextStyle(fontSize: 20)),
-            );
-          }
+          data: (cart) {
+            if (cart.items.isEmpty) {
+              return const Center(
+                child: Text('سبد خرید خالی است', style: TextStyle(fontSize: 20)),
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () => ref.read(cartProvider.notifier).refreshCart(),
-            child: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                ...cart.items.map((item) => _CartItemTile(item: item, money: _money)),
-                const SizedBox(height: 12),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('جمع سبد خرید', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(_money(cart.subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
+            return RefreshIndicator(
+              onRefresh: () => ref.read(cartProvider.notifier).refreshCart(),
+              child: ListView(
+                padding: const EdgeInsets.all(12),
+                children: [
+                  ...cart.items.map((item) => _CartItemTile(item: item, money: _money)),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('جمع سبد خرید', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(_money(cart.subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const CheckoutPage()),
-                    );
-                  },
-                  icon: const Icon(Icons.shopping_cart_checkout),
-                  label: const Text('ادامه و تکمیل سفارش'),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _confirmClear(context, ref),
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('خالی کردن سبد'),
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CheckoutPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.shopping_cart_checkout),
+                    label: const Text('ادامه و تکمیل سفارش'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => _confirmClear(context, ref),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('خالی کردن سبد'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -114,6 +117,7 @@ class _CartItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(cartProvider.notifier);
+    final imageUrl = item.product.image;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -121,15 +125,22 @@ class _CartItemTile extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.grey.shade100,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 72,
+                height: 72,
+                child: imageUrl != null && imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 34,
+                        ),
+                      )
+                    : const Icon(Icons.image_outlined, size: 34),
               ),
-              child: const Icon(Icons.image_outlined, size: 34),
             ),
             const SizedBox(width: 12),
             Expanded(
