@@ -19,15 +19,18 @@ class CartPage extends ConsumerWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          leading: Directionality(
-            textDirection: TextDirection.ltr,
-            child: IconButton(
-              tooltip: 'بازگشت',
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ),
+          automaticallyImplyLeading: false,
           title: const Text('سبد خرید'),
+          actions: [
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: IconButton(
+                tooltip: 'بازگشت',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+          ],
         ),
         body: cartAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
