@@ -45,154 +45,157 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('جزئیات محصول')),
-      body: productAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'خطا در دریافت محصول:\n$error',
-              textAlign: TextAlign.center,
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: productAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'خطا در دریافت محصول:\n$error',
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
-        data: (product) {
-          final hasDiscount = product.discountPrice != null &&
-              product.discountPrice! < product.price;
-          final discountPercent = hasDiscount
-              ? ((product.price - product.discountPrice!) / product.price * 100).round()
-              : 0;
-          final canBuy = product.isActive && product.stock > 0;
+          data: (product) {
+            final hasDiscount = product.discountPrice != null &&
+                product.discountPrice! < product.price;
+            final discountPercent = hasDiscount
+                ? ((product.price - product.discountPrice!) / product.price * 100).round()
+                : 0;
+            final canBuy = product.isActive && product.stock > 0;
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (product.image != null && product.image!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    product.image!,
-                    height: 280,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox(
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (product.image != null && product.image!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      product.image!,
                       height: 280,
-                      child: Icon(Icons.image_not_supported_outlined, size: 72),
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox(
+                        height: 280,
+                        child: Icon(Icons.image_not_supported_outlined, size: 72),
+                      ),
                     ),
+                  )
+                else
+                  const SizedBox(
+                    height: 280,
+                    child: Icon(Icons.image_outlined, size: 72),
                   ),
-                )
-              else
-                const SizedBox(
-                  height: 280,
-                  child: Icon(Icons.image_outlined, size: 72),
+                const SizedBox(height: 20),
+                Text(
+                  product.name,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-              const SizedBox(height: 20),
-              Text(
-                product.name,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(Icons.star, size: 20, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text('${product.rating}'),
-                  const SizedBox(width: 16),
-                  Text('بازدید: ${product.views}'),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (hasDiscount) ...[
+                const SizedBox(height: 10),
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '$discountPercent٪ تخفیف',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    const Icon(Icons.star, size: 20, color: Colors.amber),
+                    const SizedBox(width: 4),
+                    Text('${product.rating}'),
+                    const SizedBox(width: 16),
+                    Text('بازدید: ${product.views}'),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (hasDiscount) ...[
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '$discountPercent٪ تخفیف',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      '${PriceFormatter.format(product.price)} تومان',
-                      style: const TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.grey,
+                      const SizedBox(width: 10),
+                      Text(
+                        '${PriceFormatter.format(product.price)} تومان',
+                        style: const TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                Text(
+                  '${PriceFormatter.format(product.effectivePrice)} تومان',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 16),
+                Text(
+                  product.stock > 0 ? 'موجودی: ${product.stock}' : 'ناموجود',
+                  style: TextStyle(
+                    color: product.stock > 0 ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (product.description.isNotEmpty) ...[
+                  const Text('توضیحات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(product.description, style: const TextStyle(fontSize: 16, height: 1.7)),
+                  const SizedBox(height: 24),
+                ],
+                if (canBuy)
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: _quantity < product.stock
+                                  ? () => setState(() => _quantity++)
+                                  : null,
+                              icon: const Icon(Icons.add),
+                            ),
+                            Text('$_quantity', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            IconButton(
+                              onPressed: _quantity > 1
+                                  ? () => setState(() => _quantity--)
+                                  : null,
+                              icon: const Icon(Icons.remove),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () => _addToCart(product),
+                          icon: const Icon(Icons.add_shopping_cart),
+                          label: const Text('افزودن به سبد خرید'),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  const SizedBox(
+                    height: 48,
+                    child: Center(child: Text('این محصول در حال حاضر قابل خرید نیست')),
+                  ),
               ],
-              Text(
-                '${PriceFormatter.format(product.effectivePrice)} تومان',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                product.stock > 0 ? 'موجودی: ${product.stock}' : 'ناموجود',
-                style: TextStyle(
-                  color: product.stock > 0 ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (product.description.isNotEmpty) ...[
-                const Text('توضیحات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text(product.description, style: const TextStyle(fontSize: 16, height: 1.7)),
-                const SizedBox(height: 24),
-              ],
-              if (canBuy)
-                Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: _quantity < product.stock
-                                ? () => setState(() => _quantity++)
-                                : null,
-                            icon: const Icon(Icons.add),
-                          ),
-                          Text('$_quantity', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          IconButton(
-                            onPressed: _quantity > 1
-                                ? () => setState(() => _quantity--)
-                                : null,
-                            icon: const Icon(Icons.remove),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => _addToCart(product),
-                        icon: const Icon(Icons.add_shopping_cart),
-                        label: const Text('افزودن به سبد خرید'),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                const SizedBox(
-                  height: 48,
-                  child: Center(child: Text('این محصول در حال حاضر قابل خرید نیست')),
-                ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
