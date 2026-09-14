@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import '../../core/network/api_response.dart';
 import '../../models/order_model.dart';
 
 class OrderRepository {
@@ -8,8 +9,11 @@ class OrderRepository {
 
   Future<List<OrderModel>> getOrders() async {
     final response = await _apiClient.get('/orders');
-    final data = response['data'];
-    final list = data is Map<String, dynamic> ? data['data'] : data;
+    final list = response is Map<String, dynamic> && response['data'] is Map<String, dynamic>
+        ? response['data']['data']
+        : response is Map<String, dynamic>
+            ? response['data']
+            : null;
     if (list is! List) throw const FormatException('Invalid orders response');
     return list
         .whereType<Map<String, dynamic>>()
@@ -19,18 +23,18 @@ class OrderRepository {
 
   Future<OrderModel> getOrder(int id) async {
     final response = await _apiClient.get('/orders/$id');
-    return OrderModel.fromJson(response['data'] as Map<String, dynamic>);
+    return OrderModel.fromJson(ApiResponse.dataMap(response));
   }
 
   Future<OrderModel> checkout({required int addressId}) async {
     final response = await _apiClient.post('/orders/checkout', body: {
       'address_id': addressId,
     });
-    return OrderModel.fromJson(response['data'] as Map<String, dynamic>);
+    return OrderModel.fromJson(ApiResponse.dataMap(response));
   }
 
   Future<PaymentModel> pay(int orderId) async {
     final response = await _apiClient.post('/orders/$orderId/pay');
-    return PaymentModel.fromJson(response['data'] as Map<String, dynamic>);
+    return PaymentModel.fromJson(ApiResponse.dataMap(response));
   }
 }
