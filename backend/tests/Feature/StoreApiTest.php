@@ -86,7 +86,7 @@ class StoreApiTest extends TestCase
                 'product_id' => $product->id,
                 'quantity' => 2,
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.items.0.quantity', 2)
             ->assertJsonPath('data.items.0.product.id', $product->id);
     }
