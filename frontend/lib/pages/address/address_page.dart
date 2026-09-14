@@ -205,7 +205,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     setState(() => _saving = true);
     try {
       final repository = ref.read(addressRepositoryProvider);
-      final title = _title.text.trim().isEmpty ? null : _title.text.trim();
+      final title = _title.text.trim();
       if (widget.address == null) {
         await repository.create(
           title: title,
@@ -242,7 +242,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   }
 
   String? _required(String? value, String label) {
-    if (value == null || value.trim().isEmpty) return '$label را انتخاب/وارد کنید';
+    if (value == null || value.trim().isEmpty) return '$label را وارد کنید';
     return null;
   }
 
@@ -263,7 +263,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                _field(_title, 'عنوان آدرس', required: false),
+                _field(_title, 'عنوان آدرس'),
                 _field(_recipient, 'نام گیرنده'),
                 _field(_phone, 'شماره تماس', keyboardType: TextInputType.phone),
                 _provinceDropdown(),
@@ -332,7 +332,6 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
   Widget _field(
     TextEditingController controller,
     String label, {
-    bool required = true,
     TextInputType? keyboardType,
     int maxLines = 1,
   }) {
@@ -343,7 +342,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
         keyboardType: keyboardType,
         maxLines: maxLines,
         decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-        validator: required ? (value) => _required(value, label) : null,
+        validator: (value) => _required(value, label),
       ),
     );
   }
