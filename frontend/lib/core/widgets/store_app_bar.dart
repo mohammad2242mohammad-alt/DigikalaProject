@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../constants/store_ui_constants.dart';
 
-/// Centralized top bar for all non-home pages.
-/// Header direction, store name, icons and sizes are defined in StoreUi.
+/// Shared header for every non-home page.
+/// All visual values are centralized in StoreUi.
 class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
   const StoreAppBar({super.key, required this.title, this.actions});
 
@@ -14,38 +14,52 @@ class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       automaticallyImplyLeading: false,
       titleSpacing: 0,
-      title: Directionality(
-        textDirection: StoreUi.headerDirection,
-        child: Row(
+      title: SizedBox(
+        width: double.infinity,
+        height: kToolbarHeight,
+        child: Stack(
+          textDirection: StoreUi.headerDirection,
           children: [
-            IconButton(
-              icon: const Icon(StoreUi.backIcon),
-              onPressed: () => Navigator.of(context).maybePop(),
-              tooltip: 'بازگشت',
-            ),
-            Directionality(
-              textDirection: StoreUi.contentDirection,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: StoreUi.headerTitleSize,
-                  fontWeight: FontWeight.w600,
-                ),
+            PositionedDirectional(
+              start: 0,
+              top: 0,
+              bottom: 0,
+              child: Row(
+                textDirection: StoreUi.headerDirection,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(StoreUi.backIcon),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    tooltip: 'بازگشت',
+                  ),
+                  Directionality(
+                    textDirection: StoreUi.contentDirection,
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: StoreUi.headerTitleSize,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (actions != null) ...actions!,
+                ],
               ),
             ),
-            const Spacer(),
-            if (actions != null) ...actions!,
-            Directionality(
-              textDirection: StoreUi.contentDirection,
-              child: const Padding(
-                padding: EdgeInsetsDirectional.only(
-                  end: StoreUi.headerHorizontalPadding,
-                ),
-                child: Text(
-                  StoreUi.storeName,
-                  style: TextStyle(
-                    fontSize: StoreUi.headerTitleSize,
-                    fontWeight: FontWeight.bold,
+            PositionedDirectional(
+              end: StoreUi.headerHorizontalPadding,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Directionality(
+                  textDirection: StoreUi.contentDirection,
+                  child: const Text(
+                    StoreUi.storeName,
+                    style: TextStyle(
+                      fontSize: StoreUi.headerTitleSize,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
