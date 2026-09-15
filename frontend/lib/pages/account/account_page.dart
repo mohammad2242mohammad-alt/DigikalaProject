@@ -20,12 +20,14 @@ class AccountPage extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).maybePop(),
-            tooltip: 'بازگشت',
-          ),
           title: const Text('حساب کاربری'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).maybePop(),
+              tooltip: 'بازگشت',
+            ),
+          ],
         ),
         body: ListView(
           padding: const EdgeInsets.all(16),
