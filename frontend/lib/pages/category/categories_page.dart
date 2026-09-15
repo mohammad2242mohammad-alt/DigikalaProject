@@ -12,11 +12,11 @@ class CategoriesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoriesProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: categoriesAsync.when(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
+        body: categoriesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Padding(
@@ -64,19 +64,18 @@ class _CategoryTile extends StatelessWidget {
         title: Text(category.name),
         subtitle: category.children.isEmpty ? null : Text('${category.children.length} زیر‌دسته'),
         children: [
-          if (category.children.isNotEmpty)
-            ListTile(
-              contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
-              leading: const Icon(Icons.apps_outlined),
-              title: const Text('همه محصولات'),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SearchPage(categoryId: category.id, title: 'همه محصولات ${category.name}'),
-                  ),
-                );
-              },
-            ),
+          ListTile(
+            contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
+            leading: const Icon(Icons.apps_outlined),
+            title: const Text('همه محصولات'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => SearchPage(categoryId: category.id, title: 'همه محصولات ${category.name}'),
+                ),
+              );
+            },
+          ),
           for (final child in category.children)
             ListTile(
               contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
