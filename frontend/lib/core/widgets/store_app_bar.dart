@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 /// Centralized top bar for all non-home pages.
 /// Change [storeName] here once to rename the store everywhere.
 class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const StoreAppBar({super.key, required this.title, this.storeName = 'دیجی‌کالا'});
+  const StoreAppBar({super.key, required this.title, this.storeName = 'دیجی‌کالا', this.actions});
 
   final String title;
   final String storeName;
+  final List<Widget>? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -24,20 +25,15 @@ class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             Directionality(
               textDirection: TextDirection.rtl,
-              child: Text(
-                title,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
+              child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
             ),
             const Spacer(),
+            if (actions != null) ...actions!,
             Directionality(
               textDirection: TextDirection.rtl,
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(end: 16),
-                child: Text(
-                  storeName,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                child: Text(storeName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
