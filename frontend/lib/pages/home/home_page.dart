@@ -12,6 +12,7 @@ import '../checkout/checkout_page.dart';
 import '../orders/orders_page.dart';
 import '../product/product_detail_page.dart';
 import '../search/search_page.dart';
+import '../seller/seller_panel_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -70,6 +71,8 @@ class HomePage extends ConsumerWidget {
               onSelected: (value) async {
                 if (value == 'admin') {
                   await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminPage()));
+                } else if (value == 'seller') {
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SellerPanelPage()));
                 } else if (value == 'logout') {
                   await ref.read(authProvider.notifier).logout();
                 }
@@ -83,6 +86,11 @@ class HomePage extends ConsumerWidget {
                     child: Row(children: [Icon(Icons.admin_panel_settings_outlined), SizedBox(width: 8), Text('پنل مدیریت')]),
                   ),
                 ],
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'seller',
+                  child: Row(children: [Icon(Icons.storefront_outlined), SizedBox(width: 8), Text('پنل فروشندگی')]),
+                ),
                 const PopupMenuDivider(),
                 const PopupMenuItem<String>(value: 'logout', child: Text('خروج از حساب')),
               ],
