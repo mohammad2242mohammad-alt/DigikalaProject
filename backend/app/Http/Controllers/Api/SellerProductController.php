@@ -27,6 +27,8 @@ class SellerProductController extends Controller
 
     public function store(SellerProductRequest $request): ProductResource
     {
+        $this->authorizeSeller($request);
+
         $product = Product::create([
             ...$request->validated(),
             'seller_id' => $request->user()->id,
@@ -72,7 +74,9 @@ class SellerProductController extends Controller
 
     private function authorizeSeller(Request $request): void
     {
-        abort_unless($request->user()?->isSeller(), 403);
+        $user = $request->user();
+        abort_unless($user?->isSeller(), 403);
+        abort_unless($user->sellerProfile?->status === 'approved', 403, 'Seller account is not approved.');
     }
 
     private function authorizeSellerProduct(Request $request, Product $product): void
