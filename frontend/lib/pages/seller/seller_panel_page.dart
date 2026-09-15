@@ -24,6 +24,7 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
   bool _loading = false;
   Map<String, dynamic>? _profile;
   List<Product> _products = const [];
+  List<Map<String, dynamic>> _orders = const [];
   String? _error;
 
   @override
@@ -43,6 +44,7 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
       _profile = await repository.getProfile();
       if (_profile?['status'] == 'approved') {
         _products = await repository.getProducts();
+        _orders = await repository.getOrders();
       }
     } on ApiException catch (e) {
       _error = e.message;
@@ -78,6 +80,20 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
     } on ApiException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _changeOrderStatus(int orderItemId, String status) async {
+    try {
+      await ref.read(sellerRepositoryProvider).updateOrderStatus(orderItemId, status);
+      await _loadSellerData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('وضعیت سفارش تغییر کرد')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 
@@ -166,8 +182,21 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
           const Text('محصولات من', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ..._products.map(_productTile),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('سفارش‌های من', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              IconButton(onPressed: _loading ? null : _loadSellerData, icon: const Icon(Icons.refresh)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_orders.isEmpty)
+            const Card(child: Padding(padding: EdgeInsets.all(20), child: Center(child: Text('هنوز سفارشی برای محصولات شما ثبت نشده است.'))))
+          else
+            ..._orders.map(_orderTile),
         ] else
-          const Card(child: Padding(padding: EdgeInsets.all(20), child: Text('پس از تأیید فروشگاه، امکان افزودن و مدیریت محصول فعال می‌شود.'))),
+          const Card(child: Padding(padding: EdgeInsets.all(20), child: Text('پس از تأیید فروشگاه، امکان افزودن و مدیریت محصول و سفارش فعال می‌شود.'))),
       ],
     );
   }
@@ -181,6 +210,65 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
           trailing: Icon(product.isActive ? Icons.check_circle : Icons.hourglass_top),
         ),
       );
+
+  Widget _orderTile(Map<String, dynamic> item) {
+    final order = item['order'] is Map ? Map<String, dynamic>.from(item['order']) : <String, dynamic>{};
+    final product = item['product'] is Map ? Map<String, dynamic>.from(item['product']) : <String, dynamic>{};
+    final customer = order['user'] is Map ? Map<String, dynamic>.from(order['user']) : <String, dynamic>{};
+    final status = item['fulfillment_status']?.toString() ?? 'pending';
+    final statusText = _sellerOrderStatusText(status);
+    final orderId = order['id']?.toString() ?? '-';
+    final itemId = int.tryParse(item['id']?.toString() ?? '');
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.receipt_long_outlined),
+                const SizedBox(width: 8),
+                Expanded(child: Text('سفارش #$orderId', style: const TextStyle(fontWeight: FontWeight.bold))),
+                Chip(label: Text(statusText)),
+              ],
+            ),
+            const Divider(),
+            Text('محصول: ${item['product_name'] ?? product['name'] ?? '-'}'),
+            Text('تعداد: ${item['quantity'] ?? '-'}'),
+            Text('مبلغ: ${item['total_price'] ?? '-'} تومان'),
+            if (customer['name'] != null) Text('خریدار: ${customer['name']}'),
+            if (itemId != null) ...[
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: status,
+                decoration: const InputDecoration(labelText: 'وضعیت ارسال', border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'pending', child: Text('در انتظار آماده‌سازی')),
+                  DropdownMenuItem(value: 'processing', child: Text('در حال آماده‌سازی')),
+                  DropdownMenuItem(value: 'shipped', child: Text('ارسال شده')),
+                  DropdownMenuItem(value: 'delivered', child: Text('تحویل داده شده')),
+                  DropdownMenuItem(value: 'cancelled', child: Text('لغو شده')),
+                ],
+                onChanged: _loading ? null : (value) {
+                  if (value != null && value != status) _changeOrderStatus(itemId, value);
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _sellerOrderStatusText(String status) => switch (status) {
+        'processing' => 'در حال آماده‌سازی',
+        'shipped' => 'ارسال شده',
+        'delivered' => 'تحویل داده شده',
+        'cancelled' => 'لغو شده',
+        _ => 'در انتظار آماده‌سازی',
+      };
 
   Future<void> _showProductForm(BuildContext context) async {
     final name = TextEditingController();
