@@ -28,6 +28,17 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authProvider).value;
+      if (user?.role == 'seller') {
+        _loadSellerData();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _storeNameController.dispose();
     _descriptionController.dispose();
@@ -119,8 +130,10 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
               Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(_error!))),
             if (_profile == null && user.role != 'seller') _buildApplication(),
             if (_profile == null && user.role == 'seller') ...[
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-              if (!_loading) Center(child: FilledButton(onPressed: _loadSellerData, child: const Text('دریافت اطلاعات'))),
+              if (_loading)
+                const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+              else
+                Center(child: FilledButton(onPressed: _loadSellerData, child: const Text('دریافت اطلاعات'))),
             ],
             if (_profile != null) _buildSellerContent(),
           ],
