@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\SellerApplicationController;
 use App\Http\Controllers\Api\SellerOrderController;
 use App\Http\Controllers\Api\SellerProductController;
 use App\Http\Controllers\Api\SellerProfileController;
+use App\Http\Controllers\Api\SellerStoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -29,6 +30,7 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::get('/sellers/{sellerProfile:slug}', [SellerStoreController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/seller/apply', [SellerApplicationController::class, 'apply']);
