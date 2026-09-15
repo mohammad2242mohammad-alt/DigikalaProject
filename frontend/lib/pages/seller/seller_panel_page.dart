@@ -99,7 +99,10 @@ class _SellerPanelPageState extends ConsumerState<SellerPanelPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider).valueOrNull;
+    final user = switch (ref.watch(authProvider)) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
 
     if (user == null) {
       return const Scaffold(body: Center(child: Text('برای ورود به پنل فروشنده وارد شوید')));
