@@ -18,8 +18,27 @@ class AccountPage extends ConsumerWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('حساب کاربری'),
+        appBar: Directionality(
+          textDirection: TextDirection.ltr,
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            titleSpacing: 0,
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  tooltip: 'بازگشت',
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'حساب کاربری',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
         ),
         body: ListView(
           padding: const EdgeInsets.all(16),
