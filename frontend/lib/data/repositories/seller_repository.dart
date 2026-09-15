@@ -77,4 +77,27 @@ class SellerRepository {
   Future<void> suspendSeller(int id) async {
     await _apiClient.patch('/admin/sellers/$id/suspend');
   }
+
+  Future<List<Map<String, dynamic>>> getOrders() async {
+    final response = await _apiClient.get('/seller/orders');
+    return ApiResponse.dataList(response)
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> getOrder(int orderItemId) async {
+    final response = await _apiClient.get('/seller/orders/$orderItemId');
+    return ApiResponse.dataMap(response);
+  }
+
+  Future<Map<String, dynamic>> updateOrderStatus(
+    int orderItemId,
+    String status,
+  ) async {
+    final response = await _apiClient.patch(
+      '/seller/orders/$orderItemId/status',
+      body: {'status': status},
+    );
+    return ApiResponse.dataMap(response);
+  }
 }
