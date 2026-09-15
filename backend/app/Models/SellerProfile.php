@@ -28,6 +28,6 @@ class SellerProfile extends Model
 
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'seller_id');
+        return $this->hasMany(Product::class, 'seller_id', 'user_id');
     }
 }
