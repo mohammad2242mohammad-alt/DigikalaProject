@@ -23,7 +23,7 @@ class AccountPage extends ConsumerWidget {
           title: const Text('حساب کاربری'),
           actions: [
             IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_forward),
               onPressed: () => Navigator.of(context).maybePop(),
               tooltip: 'بازگشت',
             ),
@@ -60,7 +60,7 @@ class AccountPage extends ConsumerWidget {
             const Divider(height: 32),
             _AccountTile(icon: Icons.storefront_outlined, title: 'پنل فروشندگی', subtitle: 'مدیریت فروشگاه و سفارش‌های فروشنده', onTap: () => _open(context, const SellerPanelPage())),
             if (user?.isAdmin == true)
-              _AccountTile(icon: Icons.admin_panel_settings_outlined, title: 'پنل مدیریت', subtitle: 'مدیریت فروشندگان، محصولات و سفارش‌ها', onTap: () => _open(context, const AdminPage())),
+              _AccountTile(icon: Icons.admin_panel_settings_outlined, title: 'پنل مدیریت', subtitle: 'مدیریت فروشگاه، محصولات، دسته‌بندی‌ها و سفارش‌ها', onTap: () => _open(context, const AdminPage())),
             const SizedBox(height: 12),
             OutlinedButton.icon(onPressed: () => _logout(context, ref), icon: const Icon(Icons.logout), label: const Text('خروج از حساب')),
           ],
