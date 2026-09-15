@@ -16,6 +16,7 @@ class SellerApplicationController extends Controller
 
         abort_if($user->isAdmin(), 422, 'Administrators cannot apply as sellers.');
         abort_if($user->isSeller(), 422, 'User is already a seller.');
+        abort_if(SellerProfile::exists(), 422, 'A seller already exists.');
 
         $validated = $request->validate([
             'store_name' => ['required', 'string', 'max:255'],
