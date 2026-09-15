@@ -13,6 +13,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'seller_id',
         'name',
         'description',
         'price',
@@ -20,6 +21,8 @@ class Product extends Model
         'image',
         'stock',
         'is_active',
+        'approval_status',
+        'rejection_reason',
         'rating',
         'views',
     ];
@@ -36,6 +39,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function seller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'seller_id');
     }
 
     public function cartItems(): HasMany
