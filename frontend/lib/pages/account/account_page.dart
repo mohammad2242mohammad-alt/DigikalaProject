@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../core/widgets/store_app_bar.dart';
 import '../address/address_page.dart';
 import '../admin/admin_page.dart';
 import '../favorites/favorites_page.dart';
@@ -18,30 +19,7 @@ class AccountPage extends ConsumerWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          titleSpacing: 0,
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'بازگشت',
-                  ),
-                  const Text(
-                    'حساب کاربری',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        appBar: const StoreAppBar(title: 'حساب کاربری'),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
