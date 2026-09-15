@@ -7,12 +7,15 @@ use App\Http\Requests\SellerProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SellerProductController extends Controller
 {
-    public function index(SellerProductRequest $request): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
+        $this->authorizeSeller($request);
+
         return ProductResource::collection(
             Product::query()
                 ->with('category')
@@ -34,7 +37,7 @@ class SellerProductController extends Controller
         return new ProductResource($product->load('category'));
     }
 
-    public function show(SellerProductRequest $request, Product $product): ProductResource
+    public function show(Request $request, Product $product): ProductResource
     {
         $this->authorizeSellerProduct($request, $product);
 
@@ -55,7 +58,7 @@ class SellerProductController extends Controller
         return new ProductResource($product->fresh('category'));
     }
 
-    public function destroy(SellerProductRequest $request, Product $product): JsonResponse
+    public function destroy(Request $request, Product $product): JsonResponse
     {
         $this->authorizeSellerProduct($request, $product);
         $product->delete();
@@ -67,8 +70,14 @@ class SellerProductController extends Controller
         ]);
     }
 
-    private function authorizeSellerProduct(SellerProductRequest $request, Product $product): void
+    private function authorizeSeller(Request $request): void
     {
+        abort_unless($request->user()?->isSeller(), 403);
+    }
+
+    private function authorizeSellerProduct(Request $request, Product $product): void
+    {
+        $this->authorizeSeller($request);
         abort_unless($product->seller_id === $request->user()->id, 403);
     }
 }
