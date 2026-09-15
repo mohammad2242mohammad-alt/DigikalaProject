@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SellerApplicationController;
+use App\Http\Controllers\Api\SellerOrderController;
 use App\Http\Controllers\Api\SellerProductController;
 use App\Http\Controllers\Api\SellerProfileController;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/profile', [SellerProfileController::class, 'update']);
 
         Route::apiResource('products', SellerProductController::class);
+        Route::get('/orders', [SellerOrderController::class, 'index']);
+        Route::get('/orders/{orderItem}', [SellerOrderController::class, 'show']);
+        Route::patch('/orders/{orderItem}/status', [SellerOrderController::class, 'updateStatus']);
     });
 
     Route::middleware('can:admin')->group(function () {
