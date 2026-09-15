@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/widgets/store_app_bar.dart';
 import '../../models/category_model.dart';
 import '../../providers/category_provider.dart';
 import '../search/search_page.dart';
@@ -15,7 +16,7 @@ class CategoriesPage extends ConsumerWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
+        appBar: const StoreAppBar(title: 'دسته‌بندی‌ها'),
         body: categoriesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
@@ -60,14 +61,27 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ExpansionTile(
-        leading: const Icon(Icons.category_outlined),
-        title: Text(category.name),
-        subtitle: category.children.isEmpty ? null : Text('${category.children.length} زیر‌دسته'),
+        title: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(category.name),
+          ),
+        ),
+        subtitle: category.children.isEmpty
+            ? null
+            : Directionality(
+                textDirection: TextDirection.rtl,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('${category.children.length} زیر‌دسته'),
+                ),
+              ),
+        controlAffinity: ListTileControlAffinity.leading,
         children: [
-          ListTile(
-            contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
-            leading: const Icon(Icons.apps_outlined),
-            title: const Text('همه محصولات'),
+          _CategoryActionTile(
+            icon: Icons.apps_outlined,
+            title: 'همه محصولات',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -77,10 +91,9 @@ class _CategoryTile extends StatelessWidget {
             },
           ),
           for (final child in category.children)
-            ListTile(
-              contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
-              leading: const Icon(Icons.chevron_left),
-              title: Text(child.name),
+            _CategoryActionTile(
+              icon: Icons.chevron_left,
+              title: child.name,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -90,6 +103,33 @@ class _CategoryTile extends StatelessWidget {
               },
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _CategoryActionTile extends StatelessWidget {
+  const _CategoryActionTile({required this.icon, required this.title, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: ListTile(
+        contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 32),
+        leading: Icon(icon),
+        title: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(title),
+          ),
+        ),
+        onTap: onTap,
       ),
     );
   }
