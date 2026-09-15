@@ -32,9 +32,37 @@ class HomePage extends ConsumerWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text(
-            'دیجی‌کالا',
-            style: TextStyle(color: Colors.red, fontSize: 24, fontWeight: FontWeight.bold),
+          titleSpacing: 12,
+          title: Row(
+            children: [
+              const Text(
+                'دیجی‌کالا',
+                style: TextStyle(color: Colors.red, fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchPage())),
+                  child: Container(
+                    height: 46,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F2F7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.search),
+                        SizedBox(width: 10),
+                        Text('نام محصول را جستجو کنید'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           actions: [
             IconButton(
@@ -102,70 +130,88 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchPage())),
-                child: Container(
-                  height: 52,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F2F7),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade400),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.search),
-                      SizedBox(width: 12),
-                      Text('نام محصول را جستجو کنید'),
-                    ],
-                  ),
-                ),
-              ),
+        body: productsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text('خطا در دریافت اطلاعات:\n$error', textAlign: TextAlign.center),
             ),
-            Expanded(
-              child: productsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text('خطا در دریافت اطلاعات:\n$error', textAlign: TextAlign.center),
-                  ),
-                ),
-                data: (products) {
-                  if (products.isEmpty) return const Center(child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)));
-                  return RefreshIndicator(
-                    onRefresh: () => ref.refresh(productsProvider.future),
-                    child: ListView.builder(
-                      itemCount: products.length,
-                      itemBuilder: (context, index) {
-                        final product = products[index];
-                        return Card(
-                          margin: const EdgeInsets.all(12),
-                          child: ListTile(
-                            leading: product.image != null && product.image!.isNotEmpty
-                                ? Image.network(product.image!, width: 64, height: 64, fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
-                                : const Icon(Icons.image_outlined, size: 48),
-                            title: Text(product.name),
-                            subtitle: Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
-                            trailing: Text('⭐ ${product.rating}'),
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+          ),
+          data: (products) {
+            if (products.isEmpty) return const Center(child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)));
+
+            return RefreshIndicator(
+              onRefresh: () => ref.refresh(productsProvider.future),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = (constraints.maxWidth / 240).floor().clamp(2, 5);
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.78,
+                    ),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+
+                      return Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: product.image != null && product.image!.isNotEmpty
+                                      ? Image.network(
+                                          product.image!,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, size: 48),
+                                        )
+                                      : const Center(child: Icon(Icons.image_outlined, size: 56)),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  product.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('⭐ ${product.rating}'),
+                                    Flexible(
+                                      child: Text(
+                                        '${PriceFormatter.format(product.effectivePrice)} تومان',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
