@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSellerProfileRequest;
 use App\Http\Resources\SellerProfileResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SellerProfileController extends Controller
 {
-    public function show(StoreSellerProfileRequest $request): SellerProfileResource
+    public function show(Request $request): SellerProfileResource
     {
         $profile = $request->user()->sellerProfile;
 
