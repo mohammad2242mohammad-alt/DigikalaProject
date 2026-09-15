@@ -96,6 +96,23 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 Text(product.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, height: 1.4)),
                 const SizedBox(height: 10),
                 Row(children: [const Icon(Icons.star, size: 20, color: Colors.amber), const SizedBox(width: 4), Text('${product.rating}'), const SizedBox(width: 16), const Icon(Icons.visibility_outlined, size: 19), const SizedBox(width: 4), Text('${product.views} بازدید')]),
+                if (product.sellerName != null && product.sellerName!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 0,
+                    child: ListTile(
+                      leading: const CircleAvatar(child: Icon(Icons.store_outlined)),
+                      title: const Text('فروشنده', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(product.sellerName!, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      ),
+                      trailing: product.sellerStatus == 'approved'
+                          ? const Icon(Icons.verified, color: Colors.green)
+                          : null,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 Card(
                   elevation: 0,
