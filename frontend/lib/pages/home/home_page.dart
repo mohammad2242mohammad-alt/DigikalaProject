@@ -38,11 +38,6 @@ class HomePage extends ConsumerWidget {
           ),
           actions: [
             IconButton(
-              tooltip: 'جستجو',
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchPage())),
-              icon: const Icon(Icons.search),
-            ),
-            IconButton(
               tooltip: 'دسته‌بندی‌ها',
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesPage())),
               icon: const Icon(Icons.category_outlined),
@@ -107,41 +102,70 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-        body: productsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text('خطا در دریافت اطلاعات:\n$error', textAlign: TextAlign.center),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchPage())),
+                child: Container(
+                  height: 52,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F2F7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.search),
+                      SizedBox(width: 12),
+                      Text('نام محصول را جستجو کنید'),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-          data: (products) {
-            if (products.isEmpty) return const Center(child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)));
-            return RefreshIndicator(
-              onRefresh: () => ref.refresh(productsProvider.future),
-              child: ListView.builder(
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return Card(
-                    margin: const EdgeInsets.all(12),
-                    child: ListTile(
-                      leading: product.image != null && product.image!.isNotEmpty
-                          ? Image.network(product.image!, width: 64, height: 64, fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
-                          : const Icon(Icons.image_outlined, size: 48),
-                      title: Text(product.name),
-                      subtitle: Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
-                      trailing: Text('⭐ ${product.rating}'),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
-                      ),
+            Expanded(
+              child: productsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text('خطا در دریافت اطلاعات:\n$error', textAlign: TextAlign.center),
+                  ),
+                ),
+                data: (products) {
+                  if (products.isEmpty) return const Center(child: Text('محصولی وجود ندارد', style: TextStyle(fontSize: 20)));
+                  return RefreshIndicator(
+                    onRefresh: () => ref.refresh(productsProvider.future),
+                    child: ListView.builder(
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return Card(
+                          margin: const EdgeInsets.all(12),
+                          child: ListTile(
+                            leading: product.image != null && product.image!.isNotEmpty
+                                ? Image.network(product.image!, width: 64, height: 64, fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
+                                : const Icon(Icons.image_outlined, size: 48),
+                            title: Text(product.name),
+                            subtitle: Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
+                            trailing: Text('⭐ ${product.rating}'),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
