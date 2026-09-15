@@ -81,38 +81,44 @@ class _CategoryTileState extends State<_CategoryTile> {
             onTap: hasChildren ? () => setState(() => expanded = !expanded) : null,
             child: SizedBox(
               height: 64,
-              child: Row(
-                textDirection: StoreUi.headerDirection,
-                children: [
-                  SizedBox(
-                    width: StoreUi.categoryHorizontalPadding * 4,
-                    child: Center(
-                      child: hasChildren
-                          ? Icon(
-                              expanded ? StoreUi.collapseIcon : StoreUi.expandIcon,
-                              size: StoreUi.categoryIconSize,
-                            )
-                          : null,
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        right: StoreUi.categoryHorizontalPadding,
-                        left: 8,
-                      ),
-                      child: Text(
-                        category.name,
-                        textDirection: StoreUi.contentDirection,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Directionality(
+                  textDirection: StoreUi.headerDirection,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: StoreUi.categoryHorizontalPadding * 4,
+                        child: Center(
+                          child: hasChildren
+                              ? Icon(
+                                  expanded ? StoreUi.collapseIcon : StoreUi.expandIcon,
+                                  size: StoreUi.categoryIconSize,
+                                )
+                              : null,
                         ),
                       ),
-                    ),
+                      Directionality(
+                        textDirection: StoreUi.contentDirection,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            right: StoreUi.categoryHorizontalPadding,
+                            left: 16,
+                          ),
+                          child: Text(
+                            category.name,
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -171,24 +177,35 @@ class _CategoryActionTile extends StatelessWidget {
       onTap: onTap,
       child: SizedBox(
         height: 52,
-        child: Row(
-          textDirection: StoreUi.headerDirection,
-          children: [
-            SizedBox(
-              width: StoreUi.categoryHorizontalPadding * 3.25,
-              child: Center(
-                child: Icon(icon, size: StoreUi.categoryIconSize - 3),
-              ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Directionality(
+            textDirection: StoreUi.headerDirection,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: StoreUi.categoryHorizontalPadding * 3.25,
+                  child: Center(
+                    child: Icon(icon, size: StoreUi.categoryIconSize - 3),
+                  ),
+                ),
+                Directionality(
+                  textDirection: StoreUi.contentDirection,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      right: StoreUi.categoryHorizontalPadding,
+                    ),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Text(
-                title,
-                textDirection: StoreUi.contentDirection,
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 15),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
