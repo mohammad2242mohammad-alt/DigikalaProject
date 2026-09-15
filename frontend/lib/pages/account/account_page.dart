@@ -20,12 +20,20 @@ class AccountPage extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('حساب کاربری'),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: () => Navigator.of(context).maybePop(),
-              tooltip: 'بازگشت',
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'حساب کاربری',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  tooltip: 'بازگشت',
+                ),
+              ],
             ),
           ],
         ),
