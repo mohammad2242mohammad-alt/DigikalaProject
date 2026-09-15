@@ -22,12 +22,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'seller'], true);
     }
 
     public function isSeller(): bool
     {
-        return $this->role === 'seller';
+        return in_array($this->role, ['seller', 'admin'], true);
     }
 
     public function isBuyer(): bool
