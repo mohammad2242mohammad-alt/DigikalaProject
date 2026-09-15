@@ -64,6 +64,19 @@ class _CategoryTile extends StatelessWidget {
         title: Text(category.name),
         subtitle: category.children.isEmpty ? null : Text('${category.children.length} زیر‌دسته'),
         children: [
+          if (category.children.isNotEmpty)
+            ListTile(
+              contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
+              leading: const Icon(Icons.apps_outlined),
+              title: const Text('همه محصولات'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => SearchPage(categoryId: category.id, title: 'همه محصولات ${category.name}'),
+                  ),
+                );
+              },
+            ),
           for (final child in category.children)
             ListTile(
               contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
@@ -77,29 +90,7 @@ class _CategoryTile extends StatelessWidget {
                 );
               },
             ),
-          if (category.children.isNotEmpty)
-            ListTile(
-              contentPadding: const EdgeInsetsDirectional.only(start: 32, end: 16),
-              leading: const Icon(Icons.arrow_back),
-              title: const Text('مشاهده همه محصولات این دسته'),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SearchPage(categoryId: category.id, title: category.name),
-                  ),
-                );
-              },
-            ),
         ],
-        onExpansionChanged: (expanded) {
-          if (expanded && category.children.isEmpty) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => SearchPage(categoryId: category.id, title: category.name),
-              ),
-            );
-          }
-        },
       ),
     );
   }
