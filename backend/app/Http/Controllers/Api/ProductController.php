@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductIndexRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -29,7 +30,21 @@ class ProductController extends Controller
         }
 
         if (isset($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
+            $categoryId = (int) $filters['category_id'];
+            $category = Category::query()->find($categoryId);
+
+            if ($category?->parent_id === null) {
+                $childIds = Category::query()
+                    ->where('parent_id', $categoryId)
+                    ->pluck('id');
+
+                $query->where(function ($query) use ($categoryId, $childIds) {
+                    $query->where('category_id', $categoryId)
+                        ->orWhereIn('category_id', $childIds);
+                });
+            } else {
+                $query->where('category_id', $categoryId);
+            }
         }
 
         if (isset($filters['min_price'])) {
