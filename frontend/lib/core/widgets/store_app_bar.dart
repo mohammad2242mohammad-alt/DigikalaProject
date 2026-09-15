@@ -11,18 +11,18 @@ class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      titleSpacing: 0,
-      title: SizedBox(
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+      elevation: theme.appBarTheme.elevation ?? 4,
+      child: SizedBox(
         width: double.infinity,
         height: kToolbarHeight,
         child: Stack(
           children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
+            Align(
+              alignment: Alignment.centerLeft,
               child: Directionality(
                 textDirection: TextDirection.ltr,
                 child: Row(
@@ -48,11 +48,12 @@ class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            Positioned(
-              right: StoreUi.headerHorizontalPadding,
-              top: 0,
-              bottom: 0,
-              child: Center(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  right: StoreUi.headerHorizontalPadding,
+                ),
                 child: Directionality(
                   textDirection: StoreUi.contentDirection,
                   child: const Text(
