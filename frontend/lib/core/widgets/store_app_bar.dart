@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/store_ui_constants.dart';
 
 /// Shared header for every non-home page.
-/// All visual values are centralized in StoreUi.
+/// Physical positions are explicit so RTL cannot swap the sides.
 class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
   const StoreAppBar({super.key, required this.title, this.actions});
 
@@ -18,37 +18,38 @@ class StoreAppBar extends StatelessWidget implements PreferredSizeWidget {
         width: double.infinity,
         height: kToolbarHeight,
         child: Stack(
-          textDirection: StoreUi.headerDirection,
           children: [
-            PositionedDirectional(
-              start: 0,
+            Positioned(
+              left: 0,
               top: 0,
               bottom: 0,
-              child: Row(
-                textDirection: StoreUi.headerDirection,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(StoreUi.backIcon),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'بازگشت',
-                  ),
-                  Directionality(
-                    textDirection: StoreUi.contentDirection,
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: StoreUi.headerTitleSize,
-                        fontWeight: FontWeight.w600,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(StoreUi.backIcon),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      tooltip: 'بازگشت',
+                    ),
+                    Directionality(
+                      textDirection: StoreUi.contentDirection,
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: StoreUi.headerTitleSize,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  if (actions != null) ...actions!,
-                ],
+                    if (actions != null) ...actions!,
+                  ],
+                ),
               ),
             ),
-            PositionedDirectional(
-              end: StoreUi.headerHorizontalPadding,
+            Positioned(
+              right: StoreUi.headerHorizontalPadding,
               top: 0,
               bottom: 0,
               child: Center(
