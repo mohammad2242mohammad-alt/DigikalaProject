@@ -5,6 +5,7 @@ import '../../core/utils/price_formatter.dart';
 import '../../models/cart_model.dart';
 import '../../providers/cart_provider.dart';
 import '../checkout/checkout_page.dart';
+import '../../core/widgets/store_app_bar.dart';
 
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
@@ -16,7 +17,7 @@ class CartPage extends ConsumerWidget {
     final cartAsync = ref.watch(cartProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('سبد خرید')),
+      appBar: const StoreAppBar(title: 'سبد خرید'),
       body: Directionality(
         textDirection: TextDirection.rtl,
         child: cartAsync.when(
