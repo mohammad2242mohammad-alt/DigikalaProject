@@ -25,6 +25,16 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isSeller(): bool
+    {
+        return $this->role === 'seller';
+    }
+
+    public function isBuyer(): bool
+    {
+        return $this->role === 'buyer';
+    }
+
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
@@ -38,6 +48,16 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function sellerProfile(): HasOne
+    {
+        return $this->hasOne(SellerProfile::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'seller_id');
     }
 
     protected function casts(): array
