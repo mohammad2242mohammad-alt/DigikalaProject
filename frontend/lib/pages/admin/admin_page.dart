@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'admin_categories_page.dart';
 import 'admin_orders_page.dart';
 import 'admin_products_page.dart';
+import 'admin_sellers_page.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -16,6 +17,14 @@ class AdminPage extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _AdminTile(
+              icon: Icons.storefront_outlined,
+              title: 'مدیریت فروشندگان',
+              subtitle: 'بررسی، تأیید، رد و تعلیق فروشندگان',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AdminSellersPage()),
+              ),
+            ),
             _AdminTile(
               icon: Icons.inventory_2_outlined,
               title: 'مدیریت محصولات',
