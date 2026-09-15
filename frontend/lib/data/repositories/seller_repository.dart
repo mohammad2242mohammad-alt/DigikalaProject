@@ -55,4 +55,26 @@ class SellerRepository {
     );
     return Product.fromJson(ApiResponse.dataMap(response));
   }
+
+  Future<List<Map<String, dynamic>>> getAdminSellers() async {
+    final response = await _apiClient.get('/admin/sellers');
+    return ApiResponse.dataList(response)
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  }
+
+  Future<void> approveSeller(int id) async {
+    await _apiClient.patch('/admin/sellers/$id/approve');
+  }
+
+  Future<void> rejectSeller(int id, String reason) async {
+    await _apiClient.patch(
+      '/admin/sellers/$id/reject',
+      body: {'reason': reason.trim()},
+    );
+  }
+
+  Future<void> suspendSeller(int id) async {
+    await _apiClient.patch('/admin/sellers/$id/suspend');
+  }
 }
