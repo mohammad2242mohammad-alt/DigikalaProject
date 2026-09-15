@@ -5,6 +5,7 @@ import '../../core/utils/price_formatter.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../account/account_page.dart';
 import '../admin/admin_page.dart';
 import '../cart/cart_page.dart';
 import '../category/categories_page.dart';
@@ -65,32 +66,41 @@ class HomePage extends ConsumerWidget {
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CheckoutPage())),
               icon: const Icon(Icons.shopping_cart_checkout),
             ),
-            PopupMenuButton<String>(
+            IconButton(
               tooltip: 'حساب کاربری',
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AccountPage())),
               icon: const Icon(Icons.account_circle_outlined),
+            ),
+            PopupMenuButton<String>(
+              tooltip: 'دسترسی سریع',
+              icon: const Icon(Icons.more_vert),
               onSelected: (value) async {
                 if (value == 'admin') {
                   await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminPage()));
                 } else if (value == 'seller') {
                   await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SellerPanelPage()));
+                } else if (value == 'orders') {
+                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OrdersPage()));
                 } else if (value == 'logout') {
                   await ref.read(authProvider.notifier).logout();
                 }
               },
               itemBuilder: (_) => [
                 PopupMenuItem<String>(enabled: false, value: 'user', child: Text(user?.name ?? 'کاربر')),
-                if (user?.isAdmin == true) ...[
-                  const PopupMenuDivider(),
-                  const PopupMenuItem<String>(
-                    value: 'admin',
-                    child: Row(children: [Icon(Icons.admin_panel_settings_outlined), SizedBox(width: 8), Text('پنل مدیریت')]),
-                  ),
-                ],
                 const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'orders',
+                  child: Row(children: [Icon(Icons.receipt_long_outlined), SizedBox(width: 8), Text('سفارش‌های من')]),
+                ),
                 const PopupMenuItem<String>(
                   value: 'seller',
                   child: Row(children: [Icon(Icons.storefront_outlined), SizedBox(width: 8), Text('پنل فروشندگی')]),
                 ),
+                if (user?.isAdmin == true)
+                  const PopupMenuItem<String>(
+                    value: 'admin',
+                    child: Row(children: [Icon(Icons.admin_panel_settings_outlined), SizedBox(width: 8), Text('پنل مدیریت')]),
+                  ),
                 const PopupMenuDivider(),
                 const PopupMenuItem<String>(value: 'logout', child: Text('خروج از حساب')),
               ],
