@@ -16,8 +16,9 @@ class ProductController extends Controller
     {
         $filters = $request->validated();
         $query = Product::query()
-            ->with('category')
-            ->where('is_active', true);
+            ->with(['category', 'seller.sellerProfile'])
+            ->where('is_active', true)
+            ->where('approval_status', 'approved');
 
         if (! empty($filters['search'])) {
             $search = $filters['search'];
@@ -55,7 +56,7 @@ class ProductController extends Controller
     public function adminIndex(): AnonymousResourceCollection
     {
         return ProductResource::collection(
-            Product::query()->with('category')->latest()->paginate(30)
+            Product::query()->with(['category', 'seller.sellerProfile'])->latest()->paginate(30)
         );
     }
 
@@ -66,10 +67,10 @@ class ProductController extends Controller
 
     public function show(Product $product): ProductResource
     {
-        abort_unless($product->is_active, 404);
+        abort_unless($product->is_active && $product->approval_status === 'approved', 404);
 
         $product->increment('views');
-        $product->load('category');
+        $product->load(['category', 'seller.sellerProfile']);
 
         return new ProductResource($product->fresh());
     }
@@ -78,7 +79,7 @@ class ProductController extends Controller
     {
         $product->update($request->validated());
 
-        return new ProductResource($product->fresh('category'));
+        return new ProductResource($product->fresh(['category', 'seller.sellerProfile']));
     }
 
     public function destroy(Product $product): JsonResponse
