@@ -83,10 +83,12 @@ class OrderService
             foreach ($items as $item) {
                 $order->items()->create([
                     'product_id' => $item['product']->id,
+                    'seller_id' => $item['product']->seller_id,
                     'product_name' => $item['product']->name,
                     'unit_price' => $item['unit_price'],
                     'quantity' => $item['quantity'],
                     'total_price' => $item['total_price'],
+                    'fulfillment_status' => 'pending',
                 ]);
             }
 
