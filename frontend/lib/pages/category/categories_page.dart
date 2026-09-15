@@ -46,9 +46,7 @@ class CategoriesPage extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     itemCount: categories.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) => _CategoryTile(
-                      category: categories[index],
-                    ),
+                    itemBuilder: (_, index) => _CategoryTile(category: categories[index]),
                   ),
           ),
         ),
@@ -72,41 +70,39 @@ class _CategoryTileState extends State<_CategoryTile> {
   Widget build(BuildContext context) {
     final category = widget.category;
     final hasChildren = category.children.isNotEmpty;
+
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           InkWell(
-            onTap: hasChildren
-                ? () => setState(() => expanded = !expanded)
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            onTap: hasChildren ? () => setState(() => expanded = !expanded) : null,
+            child: SizedBox(
+              height: 64,
               child: Row(
-                textDirection: TextDirection.ltr,
                 children: [
-                  if (hasChildren)
-                    Icon(
-                      expanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      size: 26,
-                    )
-                  else
-                    const SizedBox(width: 26),
-                  const SizedBox(width: 12),
+                  // Physical LEFT: expand/collapse arrow.
+                  SizedBox(
+                    width: 64,
+                    child: Center(
+                      child: hasChildren
+                          ? Icon(
+                              expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              size: 30,
+                            )
+                          : null,
+                    ),
+                  ),
+                  // Physical RIGHT: category name.
                   Expanded(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          category.name,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16, left: 8),
+                      child: Text(
+                        category.name,
+                        textDirection: TextDirection.rtl,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -115,8 +111,7 @@ class _CategoryTileState extends State<_CategoryTile> {
             ),
           ),
           if (expanded && hasChildren)
-            Container(
-              width: double.infinity,
+            Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 children: [
@@ -124,21 +119,13 @@ class _CategoryTileState extends State<_CategoryTile> {
                   _CategoryActionTile(
                     icon: Icons.apps_outlined,
                     title: 'همه محصولات',
-                    onTap: () => _openSearch(
-                      context,
-                      category.id,
-                      'همه محصولات ${category.name}',
-                    ),
+                    onTap: () => _openSearch(context, category.id, 'همه محصولات ${category.name}'),
                   ),
                   for (final child in category.children)
                     _CategoryActionTile(
                       icon: Icons.chevron_left,
                       title: child.name,
-                      onTap: () => _openSearch(
-                        context,
-                        child.id,
-                        child.name,
-                      ),
+                      onTap: () => _openSearch(context, child.id, child.name),
                     ),
                 ],
               ),
@@ -158,30 +145,36 @@ class _CategoryTileState extends State<_CategoryTile> {
 }
 
 class _CategoryActionTile extends StatelessWidget {
-  const _CategoryActionTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
+  const _CategoryActionTile({required this.icon, required this.title, required this.onTap});
+
   final IconData icon;
   final String title;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 8, right: 12),
-        leading: Icon(icon),
-        title: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(title),
-          ),
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          children: [
+            // Physical LEFT: action icon.
+            SizedBox(
+              width: 52,
+              child: Center(child: Icon(icon, size: 23)),
+            ),
+            // Physical RIGHT: action text.
+            Expanded(
+              child: Text(
+                title,
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+          ],
         ),
-        onTap: onTap,
       ),
     );
   }
