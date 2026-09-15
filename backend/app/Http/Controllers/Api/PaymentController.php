@@ -24,6 +24,8 @@ class PaymentController extends Controller
             ]);
         }
 
+        $wasAlreadyPaid = $payment->status === 'paid';
+
         $payment = DB::transaction(function () use ($payment, $order) {
             $lockedPayment = $order->payments()
                 ->whereKey($payment->id)
@@ -63,9 +65,9 @@ class PaymentController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $payment->status === 'paid'
-                ? 'Mock payment completed successfully.'
-                : 'Order is already paid.',
+            'message' => $wasAlreadyPaid
+                ? 'Order is already paid.'
+                : 'Mock payment completed successfully.',
             'data' => $payment,
         ]);
     }
