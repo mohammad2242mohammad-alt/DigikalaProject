@@ -10,10 +10,12 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'seller_id',
         'product_name',
         'unit_price',
         'quantity',
         'total_price',
+        'fulfillment_status',
     ];
 
     protected function casts(): array
@@ -32,5 +34,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function seller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'seller_id');
     }
 }
