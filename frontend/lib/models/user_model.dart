@@ -11,7 +11,7 @@ class UserModel {
     this.role = 'customer',
   });
 
-  bool get isAdmin => role == 'admin';
+  bool get isAdmin => role == 'admin' || role == 'seller';
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
         id: (json['id'] as num).toInt(),
