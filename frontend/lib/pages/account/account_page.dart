@@ -20,11 +20,26 @@ class AccountPage extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('حساب کاربری'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).maybePop(),
-            tooltip: 'بازگشت',
+          titleSpacing: 0,
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    tooltip: 'بازگشت',
+                  ),
+                  const Text(
+                    'حساب کاربری',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         body: ListView(
@@ -86,12 +101,27 @@ class _AccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_left),
-        onTap: onTap,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: ListTile(
+          leading: Icon(icon),
+          title: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+          ),
+          subtitle: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(subtitle),
+            ),
+          ),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onTap,
+        ),
       ),
     );
   }
