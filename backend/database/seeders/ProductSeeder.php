@@ -10,9 +10,9 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $mobileCategoryId = Category::where('slug', 'mobile')->value('id');
-        $laptopCategoryId = Category::where('slug', 'laptop-computer')->value('id');
-        $headphonesCategoryId = Category::where('slug', 'headphones')->value('id');
+        $mobileCategoryId = Category::where('slug', 'mobile-phones')->value('id');
+        $laptopCategoryId = Category::where('slug', 'laptops')->value('id');
+        $headphonesCategoryId = Category::where('slug', 'headphones-main')->value('id');
 
         $products = [
             [
