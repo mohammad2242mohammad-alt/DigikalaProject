@@ -40,6 +40,13 @@ const Map<String, List<String>> _iranProvincesAndCities = {
   'یزد': ['یزد','میبد','اردکان','بافق','مهریز','اشکذر','ابرکوه','تفت'],
 };
 
+String _formatPostalCode(String value) {
+  final digits = value.replaceAll(RegExp(r'\D'), '');
+  final limited = digits.length > 10 ? digits.substring(0, 10) : digits;
+  if (limited.length <= 5) return limited;
+  return '${limited.substring(0, 5)}-${limited.substring(5)}';
+}
+
 class AddressPage extends ConsumerWidget {
   const AddressPage({super.key});
 
@@ -182,7 +189,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     final phone = a?.phone ?? '';
     _phone = TextEditingController(text: RegExp(r'^09\d{9}$').hasMatch(phone) ? phone : '09');
     _address = TextEditingController(text: a?.address ?? '');
-    _postalCode = TextEditingController(text: a?.postalCode ?? '');
+    _postalCode = TextEditingController(text: _formatPostalCode(a?.postalCode ?? ''));
     _isDefault = a?.isDefault ?? false;
     _latitude = a?.latitude;
     _longitude = a?.longitude;
@@ -217,6 +224,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     setState(() => _saving = true);
     try {
       final notifier = ref.read(addressesProvider.notifier);
+      final postalCode = _postalCode.text.replaceAll(RegExp(r'\D'), '');
       final args = {
         'title': _title.text.trim(),
         'recipientName': _recipient.text.trim(),
@@ -224,7 +232,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
         'province': _province!,
         'city': _city!,
         'address': _address.text.trim(),
-        'postalCode': _postalCode.text.trim(),
+        'postalCode': postalCode,
         'latitude': _latitude,
         'longitude': _longitude,
         'isDefault': _isDefault,
@@ -270,6 +278,29 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     if (phone.isEmpty) return 'شماره تماس را وارد کنید';
     if (!RegExp(r'^09\d{9}$').hasMatch(phone)) return 'شماره تماس باید ۱۱ رقمی و با 09 شروع شود';
     return null;
+  }
+
+  String? _postalCodeValidator(String? value) {
+    final postalCode = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+    if (postalCode.length != 10) return 'کدپستی باید دقیقاً ۱۰ رقم باشد';
+    return null;
+  }
+
+  TextEditingValue _formatPostalEditingValue(TextEditingValue oldValue, TextEditingValue newValue) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final limited = digits.length > 10 ? digits.substring(0, 10) : digits;
+    final formatted = _formatPostalCode(limited);
+    final rawCursor = newValue.selection.baseOffset.clamp(0, newValue.text.length);
+    final digitsBeforeCursor = newValue.text
+        .substring(0, rawCursor)
+        .replaceAll(RegExp(r'\D'), '')
+        .length
+        .clamp(0, 10);
+    final cursor = digitsBeforeCursor <= 5 ? digitsBeforeCursor : digitsBeforeCursor + 1;
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: cursor.clamp(0, formatted.length)),
+    );
   }
 
   @override
@@ -335,7 +366,14 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                   onChanged: _saving ? null : (value) => setState(() => _isDefault = value),
                 ),
                 _field(_address, 'آدرس', maxLines: 3, validator: (value) => value?.trim().isEmpty == true ? 'آدرس را وارد کنید' : null),
-                _field(_postalCode, 'کدپستی', keyboardType: TextInputType.number, validator: (value) => value?.trim().isEmpty == true ? 'کدپستی را وارد کنید' : null),
+                _field(
+                  _postalCode,
+                  'کدپستی',
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [TextInputFormatter.withFunction(_formatPostalEditingValue)],
+                  validator: _postalCodeValidator,
+                  textDirection: TextDirection.ltr,
+                ),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: _saving ? null : _save,
@@ -356,6 +394,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
     int maxLines = 1,
+    TextDirection? textDirection,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -365,6 +404,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
         inputFormatters: inputFormatters,
         validator: validator,
         maxLines: maxLines,
+        textDirection: textDirection,
         decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
       ),
     );
