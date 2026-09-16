@@ -6,6 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../core/widgets/store_app_bar.dart';
+import '../seller/seller_store_page.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
   const ProductDetailPage({super.key, required this.product});
@@ -103,6 +104,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       title: const Text('فروشنده', style: TextStyle(fontSize: 13, color: Colors.grey)),
                       subtitle: Padding(padding: const EdgeInsets.only(top: 4), child: Text(product.sellerName!, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
                       trailing: product.sellerStatus == 'approved' ? const Icon(Icons.verified, color: Colors.green) : null,
+                      onTap: product.sellerSlug != null && product.sellerSlug!.isNotEmpty && product.sellerStatus == 'approved'
+                          ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SellerStorePage(slug: product.sellerSlug!)))
+                          : null,
                     ),
                   ),
                 ],
