@@ -47,6 +47,8 @@ String _formatPostalCode(String value) {
   return '${limited.substring(0, 5)}-${limited.substring(5)}';
 }
 
+String _displayPostalCode(String value) => _formatPostalCode(value);
+
 class AddressPage extends ConsumerWidget {
   const AddressPage({super.key});
 
@@ -93,7 +95,7 @@ class AddressPage extends ConsumerWidget {
                           '${a.recipientName} - ${a.phone}\n'
                           '${a.province}، ${a.city}\n'
                           '${a.address}\n'
-                          'کدپستی: ${a.postalCode}\n'
+                          'کدپستی: ${_displayPostalCode(a.postalCode)}\n'
                           '${a.latitude != null && a.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
                         ),
                       ),
@@ -251,8 +253,8 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           isDefault: args['isDefault'] as bool,
         );
       } else {
-        await notifier.saveAddress(
-          id: widget.address!.id,
+        await notifier.update(
+          widget.address!.id,
           title: args['title'] as String,
           recipientName: args['recipientName'] as String,
           phone: args['phone'] as String,
@@ -265,18 +267,20 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
           isDefault: args['isDefault'] as bool,
         );
       }
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  String? _requiredValidator(String? value) => value == null || value.trim().isEmpty ? 'این فیلد الزامی است' : null;
+
   String? _phoneValidator(String? value) {
-    final phone = value?.trim() ?? '';
-    if (phone.isEmpty) return 'شماره تماس را وارد کنید';
-    if (!RegExp(r'^09\d{9}$').hasMatch(phone)) return 'شماره تماس باید ۱۱ رقمی و با 09 شروع شود';
+    if (value == null || !RegExp(r'^09\d{9}$').hasMatch(value.trim())) return 'شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود';
     return null;
   }
 
@@ -303,97 +307,12 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(widget.address == null ? 'افزودن آدرس' : 'ویرایش آدرس', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                _field(_title, 'عنوان آدرس'),
-                _field(_recipient, 'نام گیرنده'),
-                _field(
-                  _phone,
-                  'شماره تماس',
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      return RegExp(r'^09\d{0,9}$').hasMatch(newValue.text)
-                          ? newValue.copyWith(selection: TextSelection.collapsed(offset: newValue.text.length))
-                          : oldValue;
-                    }),
-                  ],
-                  validator: _phoneValidator,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: _province,
-                  decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
-                  items: _iranProvincesAndCities.keys.map((province) => DropdownMenuItem(value: province, child: Text(province))).toList(),
-                  validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
-                  onChanged: _saving ? null : (value) => setState(() { _province = value; _city = null; }),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _city,
-                  decoration: InputDecoration(
-                    labelText: 'شهر',
-                    border: const OutlineInputBorder(),
-                    helperText: _province == null ? 'ابتدا استان را انتخاب کنید' : null,
-                  ),
-                  items: _cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
-                  validator: (value) => value == null ? 'شهر را انتخاب کنید' : null,
-                  onChanged: _saving || _province == null ? null : (value) => setState(() => _city = value),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _saving ? null : _pickLocation,
-                  icon: Icon(_latitude == null ? Icons.location_on_outlined : Icons.location_on),
-                  label: Text(_latitude == null ? 'انتخاب موقعیت روی نقشه (اختیاری)' : 'ویرایش موقعیت روی نقشه'),
-                ),
-                if (_latitude != null && _longitude != null)
-                  Text('موقعیت: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}'),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('آدرس پیش‌فرض'),
-                  value: _isDefault,
-                  onChanged: _saving ? null : (value) => setState(() => _isDefault = value),
-                ),
-                _field(_address, 'آدرس', maxLines: 3, validator: (value) => value?.trim().isEmpty == true ? 'آدرس را وارد کنید' : null),
-                _field(
-                  _postalCode,
-                  'کدپستی',
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [TextInputFormatter.withFunction(_formatPostalEditingValue)],
-                  validator: _postalCodeValidator,
-                  textDirection: TextDirection.ltr,
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: Text(_saving ? 'در حال ذخیره...' : 'ذخیره آدرس'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _field(
     TextEditingController controller,
     String label, {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
-    int maxLines = 1,
     TextDirection? textDirection,
   }) {
     return Padding(
@@ -403,9 +322,75 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         validator: validator,
-        maxLines: maxLines,
         textDirection: textDirection,
         decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(context).bottom + 16),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(widget.address == null ? 'آدرس جدید' : 'ویرایش آدرس', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 16),
+                _field(_title, 'عنوان آدرس', validator: _requiredValidator),
+                _field(_recipient, 'نام گیرنده', validator: _requiredValidator),
+                _field(_phone, 'شماره موبایل', keyboardType: TextInputType.phone, validator: _phoneValidator),
+                DropdownButtonFormField<String>(
+                  value: _province,
+                  decoration: const InputDecoration(labelText: 'استان', border: OutlineInputBorder()),
+                  validator: (value) => value == null ? 'استان را انتخاب کنید' : null,
+                  items: _iranProvincesAndCities.keys.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+                  onChanged: (value) => setState(() { _province = value; _city = null; }),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _city,
+                  decoration: const InputDecoration(labelText: 'شهر', border: OutlineInputBorder()),
+                  validator: (value) => value == null ? 'شهر را انتخاب کنید' : null,
+                  items: _cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(),
+                  onChanged: _province == null ? null : (value) => setState(() => _city = value),
+                ),
+                const SizedBox(height: 12),
+                _field(_address, 'آدرس کامل', validator: _requiredValidator),
+                _field(
+                  _postalCode,
+                  'کدپستی',
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [TextInputFormatter.withFunction(_formatPostalEditingValue)],
+                  validator: _postalCodeValidator,
+                  textDirection: TextDirection.ltr,
+                ),
+                OutlinedButton.icon(
+                  onPressed: _pickLocation,
+                  icon: const Icon(Icons.location_on_outlined),
+                  label: Text(_latitude != null && _longitude != null ? 'ویرایش موقعیت روی نقشه' : 'انتخاب موقعیت روی نقشه (اختیاری)'),
+                ),
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  value: _isDefault,
+                  onChanged: (value) => setState(() => _isDefault = value ?? false),
+                  title: const Text('آدرس پیش‌فرض'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  onPressed: _saving ? null : _save,
+                  child: _saving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('ذخیره آدرس'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
