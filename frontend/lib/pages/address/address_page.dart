@@ -84,8 +84,27 @@ class AddressPage extends ConsumerWidget {
                       ),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          '${a.recipientName} - ${a.phone}\n${a.province}، ${a.city}\n${a.address}\nکدپستی: ${_formatPostalCode(a.postalCode)}\n${a.latitude != null && a.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text('${a.recipientName} - ${a.phone}'),
+                            Text('${a.province}، ${a.city}'),
+                            Text(a.address),
+                            Row(
+                              children: [
+                                const Text('کدپستی: '),
+                                Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Text(_formatPostalCode(a.postalCode)),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              a.latitude != null && a.longitude != null
+                                  ? 'موقعیت روی نقشه ثبت شده'
+                                  : 'موقعیت روی نقشه ثبت نشده',
+                            ),
+                          ],
                         ),
                       ),
                       trailing: PopupMenuButton<String>(
