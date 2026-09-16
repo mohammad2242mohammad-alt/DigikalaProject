@@ -47,8 +47,6 @@ String _formatPostalCode(String value) {
   return '${limited.substring(0, 5)}-${limited.substring(5)}';
 }
 
-String _displayPostalCode(String value) => _formatPostalCode(value);
-
 class AddressPage extends ConsumerWidget {
   const AddressPage({super.key});
 
@@ -80,23 +78,14 @@ class AddressPage extends ConsumerWidget {
                     child: ListTile(
                       title: Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              a.title?.isNotEmpty == true ? a.title! : a.city,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          Expanded(child: Text(a.title?.isNotEmpty == true ? a.title! : a.city, style: const TextStyle(fontWeight: FontWeight.bold))),
                           if (a.isDefault) const Chip(label: Text('پیش‌فرض')),
                         ],
                       ),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          '${a.recipientName} - ${a.phone}\n'
-                          '${a.province}، ${a.city}\n'
-                          '${a.address}\n'
-                          'کدپستی: ${_displayPostalCode(a.postalCode)}\n'
-                          '${a.latitude != null && a.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
+                          '${a.recipientName} - ${a.phone}\n${a.province}، ${a.city}\n${a.address}\nکدپستی: ${_formatPostalCode(a.postalCode)}\n${a.latitude != null && a.longitude != null ? 'موقعیت روی نقشه ثبت شده' : 'موقعیت روی نقشه ثبت نشده'}',
                         ),
                       ),
                       trailing: PopupMenuButton<String>(
@@ -138,13 +127,9 @@ class AddressPage extends ConsumerWidget {
     if (ok != true) return;
     try {
       await ref.read(addressesProvider.notifier).delete(address.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('آدرس حذف شد.')));
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در حذف آدرس: $e')));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در حذف آدرس: $e')));
     }
   }
 
@@ -202,17 +187,13 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
 
   @override
   void dispose() {
-    for (final controller in [_title, _recipient, _phone, _address, _postalCode]) {
-      controller.dispose();
-    }
+    for (final controller in [_title, _recipient, _phone, _address, _postalCode]) controller.dispose();
     super.dispose();
   }
 
   Future<void> _pickLocation() async {
     final location = await Navigator.of(context).push<({double latitude, double longitude})>(
-      MaterialPageRoute(
-        builder: (_) => LocationPickerPage(initialLatitude: _latitude, initialLongitude: _longitude),
-      ),
+      MaterialPageRoute(builder: (_) => LocationPickerPage(initialLatitude: _latitude, initialLongitude: _longitude)),
     );
     if (location == null || !mounted) return;
     setState(() {
@@ -227,51 +208,43 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     try {
       final notifier = ref.read(addressesProvider.notifier);
       final postalCode = _postalCode.text.replaceAll(RegExp(r'\D'), '');
-      final args = {
-        'title': _title.text.trim(),
-        'recipientName': _recipient.text.trim(),
-        'phone': _phone.text.trim(),
-        'province': _province!,
-        'city': _city!,
-        'address': _address.text.trim(),
-        'postalCode': postalCode,
-        'latitude': _latitude,
-        'longitude': _longitude,
-        'isDefault': _isDefault,
-      };
+      final title = _title.text.trim();
+      final recipientName = _recipient.text.trim();
+      final phone = _phone.text.trim();
+      final province = _province!;
+      final city = _city!;
+      final address = _address.text.trim();
       if (widget.address == null) {
         await notifier.create(
-          title: args['title'] as String,
-          recipientName: args['recipientName'] as String,
-          phone: args['phone'] as String,
-          province: args['province'] as String,
-          city: args['city'] as String,
-          address: args['address'] as String,
-          postalCode: args['postalCode'] as String,
-          latitude: args['latitude'] as double?,
-          longitude: args['longitude'] as double?,
-          isDefault: args['isDefault'] as bool,
+          title: title,
+          recipientName: recipientName,
+          phone: phone,
+          province: province,
+          city: city,
+          address: address,
+          postalCode: postalCode,
+          latitude: _latitude,
+          longitude: _longitude,
+          isDefault: _isDefault,
         );
       } else {
-        await notifier.update(
-          widget.address!.id,
-          title: args['title'] as String,
-          recipientName: args['recipientName'] as String,
-          phone: args['phone'] as String,
-          province: args['province'] as String,
-          city: args['city'] as String,
-          address: args['address'] as String,
-          postalCode: args['postalCode'] as String,
-          latitude: args['latitude'] as double?,
-          longitude: args['longitude'] as double?,
-          isDefault: args['isDefault'] as bool,
+        await notifier.saveAddress(
+          id: widget.address!.id,
+          title: title,
+          recipientName: recipientName,
+          phone: phone,
+          province: province,
+          city: city,
+          address: address,
+          postalCode: postalCode,
+          latitude: _latitude,
+          longitude: _longitude,
+          isDefault: _isDefault,
         );
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا در ذخیره آدرس: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -295,11 +268,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
     final limited = digits.length > 10 ? digits.substring(0, 10) : digits;
     final formatted = _formatPostalCode(limited);
     final rawCursor = newValue.selection.baseOffset.clamp(0, newValue.text.length);
-    final digitsBeforeCursor = newValue.text
-        .substring(0, rawCursor)
-        .replaceAll(RegExp(r'\D'), '')
-        .length
-        .clamp(0, 10);
+    final digitsBeforeCursor = newValue.text.substring(0, rawCursor).replaceAll(RegExp(r'\D'), '').length.clamp(0, 10);
     final cursor = digitsBeforeCursor <= 5 ? digitsBeforeCursor : digitsBeforeCursor + 1;
     return TextEditingValue(
       text: formatted,
