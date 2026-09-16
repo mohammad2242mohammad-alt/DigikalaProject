@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/repositories/seller_store_repository.dart';
+import '../models/seller_store_model.dart';
 import 'api_provider.dart';
 
 final sellerStoreRepositoryProvider = Provider<SellerStoreRepository>(
