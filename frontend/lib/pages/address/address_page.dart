@@ -214,10 +214,6 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_latitude == null || _longitude == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لطفاً موقعیت آدرس را روی نقشه انتخاب کنید.')));
-      return;
-    }
     setState(() => _saving = true);
     try {
       final notifier = ref.read(addressesProvider.notifier);
@@ -328,7 +324,7 @@ class _AddressFormSheetState extends ConsumerState<AddressFormSheet> {
                 OutlinedButton.icon(
                   onPressed: _saving ? null : _pickLocation,
                   icon: Icon(_latitude == null ? Icons.location_on_outlined : Icons.location_on),
-                  label: Text(_latitude == null ? 'انتخاب موقعیت روی نقشه' : 'ویرایش موقعیت روی نقشه'),
+                  label: Text(_latitude == null ? 'انتخاب موقعیت روی نقشه (اختیاری)' : 'ویرایش موقعیت روی نقشه'),
                 ),
                 if (_latitude != null && _longitude != null)
                   Text('موقعیت: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}'),
