@@ -20,7 +20,7 @@ class StoreAddressRequest extends FormRequest
             'province' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'address' => ['required', 'string', 'max:2000'],
-            'postal_code' => ['required', 'string', 'max:20'],
+            'postal_code' => ['required', 'string', 'regex:/^\d{10}$/'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'is_default' => ['sometimes', 'boolean'],
