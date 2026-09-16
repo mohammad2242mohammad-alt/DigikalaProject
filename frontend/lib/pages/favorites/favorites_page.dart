@@ -50,7 +50,21 @@ class _FavoriteCard extends ConsumerWidget {
             ? Image.network(product.image!, width: 64, height: 64, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported))
             : const Icon(Icons.image_outlined, size: 48),
         title: Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (product.sellerName != null && product.sellerName!.isNotEmpty)
+              Row(
+                children: [
+                  const Icon(Icons.storefront_outlined, size: 15),
+                  const SizedBox(width: 4),
+                  Expanded(child: Text('فروشنده: ${product.sellerName}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  if (product.sellerStatus == 'approved') const Icon(Icons.verified, size: 15),
+                ],
+              ),
+            Text('${PriceFormatter.format(product.effectivePrice)} تومان'),
+          ],
+        ),
         trailing: IconButton(
           tooltip: 'حذف از علاقه‌مندی‌ها',
           icon: const Icon(Icons.favorite, color: Colors.red),
