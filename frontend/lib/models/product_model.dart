@@ -23,20 +23,21 @@ class Product {
     required this.views,
   });
 
+  double get effectivePrice =>
+      discountPrice > 0 && discountPrice < price ? discountPrice : price;
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'] ?? '',
-      price: double.parse(json['price'].toString()),
-      discountPrice:
-          double.parse(json['discount_price'].toString()),
-      image: json['image'],
-      stock: json['stock'],
-      isActive: json['is_active'] == 1,
-      rating: double.parse(json['rating'].toString()),
-      views: json['views'],
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '') ?? 0,
+      discountPrice: double.tryParse(json['discount_price']?.toString() ?? '') ?? 0,
+      image: json['image']?.toString(),
+      stock: int.tryParse(json['stock']?.toString() ?? '') ?? 0,
+      isActive: json['is_active'] == true || json['is_active'] == 1,
+      rating: double.tryParse(json['rating']?.toString() ?? '') ?? 0,
+      views: int.tryParse(json['views']?.toString() ?? '') ?? 0,
     );
   }
 }
