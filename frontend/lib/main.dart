@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const DigikalaApp());
+  runApp(const ProviderScope(child: DigikalaApp()));
 }
 
 class DigikalaApp extends StatelessWidget {
@@ -27,16 +28,11 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('دیجی‌کالا'),
-      ),
+      appBar: AppBar(title: const Text('دیجی‌کالا')),
       body: const Center(
         child: Text(
           'صفحه اصلی دیجی‌کالا',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
